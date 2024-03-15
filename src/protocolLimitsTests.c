@@ -4,6 +4,34 @@
 
 Suite *protocol_limits_suite(void);
 
+// Test for minimum number in the version field.
+START_TEST(test_protocol_version_min_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    int x = 2;
+    ck_assert_int_eq(1, x);
+}
+
+// Test for maximum number in the version field.
+START_TEST(test_protocol_version_max_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    int x = 2;
+    ck_assert_int_eq(1, x);
+}
+
+// Test for minimum number in the content size field.
+START_TEST(test_protocol_content_size_min_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    int x = 2;
+    ck_assert_int_eq(1, x);
+}
+
+// Test for maximum number in the content size field.
+START_TEST(test_protocol_content_size_max_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    int x = 2;
+    ck_assert_int_eq(1, x);
+}
+
 // Test for minimum chars in content field.
 START_TEST(test_protocol_content_min_chars)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
@@ -28,6 +56,12 @@ Suite *protocol_limits_suite(void)
     tc_core = tcase_create("Core");
 
     // Add test cases to the test suite
+    tcase_add_test(tc_core, test_protocol_version_min_number);
+    tcase_add_test(tc_core, test_protocol_version_max_number);
+
+    tcase_add_test(tc_core, test_protocol_content_size_min_number);
+    tcase_add_test(tc_core, test_protocol_content_size_max_number);
+
     tcase_add_test(tc_core, test_protocol_content_min_chars);
     tcase_add_test(tc_core, test_protocol_content_max_chars);
 
