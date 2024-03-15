@@ -8,4 +8,3 @@
 int runBaseProtocolTests(void);
 
 #endif
-

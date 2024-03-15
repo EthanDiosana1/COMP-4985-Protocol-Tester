@@ -1,5 +1,6 @@
 #include "baseProtocolTests.h"
 #include "protocolLimitsTests.h"
+#include <stdlib.h>
 
 int runBaseProtocolTests(void)
 {
@@ -7,7 +8,6 @@ int runBaseProtocolTests(void)
     testProtocolLimits();
 
     // Other tests
-    
+
     return EXIT_SUCCESS;
 }
-

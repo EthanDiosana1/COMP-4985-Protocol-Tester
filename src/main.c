@@ -8,7 +8,7 @@
 int main(void)
 {
     // Run base protocol tests
-    runBaseProtocolTests(void);
+    runBaseProtocolTests();
 
     return EXIT_SUCCESS;
 }
