@@ -1,8 +1,8 @@
-#include "baseProtocolTests.h"
+#include "protocolCommonTests.h"
 #include "protocolLimitsTests.h"
 #include <stdlib.h>
 
-int runBaseProtocolTests(void)
+int runCommonProtocolTests(void)
 {
     // Test the limits of the protocol fields
     testProtocolLimits();
