@@ -7,6 +7,7 @@
 struct params
 {
     int client_fd;
+    int server_fd;
 };
 
 static struct params params;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -16,7 +17,7 @@ Suite *protocol_client_suite(void);
 // Test for client connection to server
 START_TEST(test_client_connection)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_ne(-1, params.client_fd); // Fail if client_fd == -1
+    ck_assert_int_ne(-1, params.client_fd);    // Fail if client_fd == -1
 }
 
 // Test for writing correct message format
@@ -82,12 +83,13 @@ int testProtocolClient(void)
     Suite                  *s;                  // The testing suite to run
     SRunner                *sr;                 // The suite runner
 
-    // Create mock server
+    // Create mock server and accept a connection
     server_fd = create_server();
     client_fd = accept_connection(server_fd, &client_addr, &client_addr_len);
 
     // Pass parameter into struct to be used by test cases
     params.client_fd = client_fd;
+    params.server_fd = server_fd;
 
     // Create test suite
     s = protocol_client_suite();
@@ -103,6 +105,7 @@ int testProtocolClient(void)
 
     // Clean up
     srunner_free(sr);
+    close(client_fd);
     close(server_fd);
 
     // Return status
