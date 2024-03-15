@@ -1,1 +1,1 @@
-main src/main.c src/protocolLimitsTests.c include/protocolLimitsTests.h check
+main src/main.c include/protocolLimitsTests.h src/protocolLimitsTests.c include/baseProtocolTests.h src/baseProtocolTests.c check

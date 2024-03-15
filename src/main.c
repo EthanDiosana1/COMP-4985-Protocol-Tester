@@ -2,11 +2,13 @@
 #include <stdlib.h>
 
 // Testing suites
-#include "protocolLimitsTests.h"
+#include "baseProtocolTests.h"
 
 // Main function to run the tests
 int main(void)
 {
-    testProtocolLimits();
+    // Run base protocol tests
+    runBaseProtocolTests(void);
+
     return EXIT_SUCCESS;
 }
