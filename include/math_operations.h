@@ -1,7 +1,0 @@
-#ifndef COMP_4985_PROTOCOL_TESTER_MATH_OPERATIONS_H
-#define COMP_4985_PROTOCOL_TESTER_MATH_OPERATIONS_H
-
-int add(int a, int b);
-int subtract(int a, int b);
-
-#endif    // COMP_4985_PROTOCOL_TESTER_MATH_OPERATIONS_H
