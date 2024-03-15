@@ -2,6 +2,9 @@
 #include <check.h>
 #include <stdlib.h>
 
+// Testing suites
+#include "protocolLimitsTests.h"
+
 Suite *math_operations_suite(void);
 
 // Define test cases
@@ -58,25 +61,6 @@ Suite *math_operations_suite(void)
 // Main function to run the tests
 int main(void)
 {
-    int      number_failed;
-    Suite   *s;
-    SRunner *sr;
-
-    // Create test suite
-    s = math_operations_suite();
-
-    // Create test runner
-    sr = srunner_create(s);
-
-    // Run the tests
-    srunner_run_all(sr, CK_NORMAL);
-
-    // Get number of failed tests
-    number_failed = srunner_ntests_failed(sr);
-
-    // Clean up
-    srunner_free(sr);
-
-    // Return status
-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    testProtocolLimits();
+    return EXIT_SUCCESS;
 }
