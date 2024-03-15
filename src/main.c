@@ -61,6 +61,5 @@ Suite *math_operations_suite(void)
 // Main function to run the tests
 int main(void)
 {
-    testProtocolLimits();
-    return EXIT_SUCCESS;
+    return testProtocolLimits();
 }

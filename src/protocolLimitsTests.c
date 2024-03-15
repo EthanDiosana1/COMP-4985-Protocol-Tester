@@ -11,6 +11,13 @@ START_TEST(test_protocol_content_min_chars)    // NOLINT(cppcoreguidelines-avoid
     ck_assert_int_eq(1, x);
 }
 
+// Test for minimum chars in content field.
+START_TEST(test_protocol_content_max_chars)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    int y = 2;
+    ck_assert_int_eq(2, y);
+}
+
 // Create test suite
 Suite *protocol_limits_suite(void)
 {
@@ -22,7 +29,9 @@ Suite *protocol_limits_suite(void)
 
     // Add test cases to the test suite
     tcase_add_test(tc_core, test_protocol_content_min_chars);
+    tcase_add_test(tc_core, test_protocol_content_max_chars);
 
+    suite_add_tcase(s, tc_core);
     return s;
 }
 
