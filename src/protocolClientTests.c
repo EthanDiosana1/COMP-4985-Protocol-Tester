@@ -6,7 +6,7 @@
 
 struct params
 {
-    int test_sockfd;
+    int client_fd;
 };
 
 static struct params params;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -16,37 +16,37 @@ Suite *protocol_client_suite(void);
 // Test for client connection to server
 START_TEST(test_client_connection)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.test_sockfd);
+    ck_assert_int_ne(-1, params.client_fd); // Fail if client_fd == -1
 }
 
 // Test for writing correct message format
 START_TEST(test_client_message_format)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.test_sockfd);
+    ck_assert_int_eq(0, params.client_fd);
 }
 
 // Test for /w command
 START_TEST(test_client_whisper_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.test_sockfd);
+    ck_assert_int_eq(0, params.client_fd);
 }
 
 // Test for /h command
 START_TEST(test_client_help_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.test_sockfd);
+    ck_assert_int_eq(0, params.client_fd);
 }
 
 // Test for /u command
 START_TEST(test_client_username_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.test_sockfd);
+    ck_assert_int_eq(0, params.client_fd);
 }
 
 // Test for /ul command
 START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.test_sockfd);
+    ck_assert_int_eq(0, params.client_fd);
 }
 
 // Create test suite
@@ -72,18 +72,22 @@ Suite *protocol_client_suite(void)
     return s;
 }
 
-int testProtocolClient(int sockfd)
+int testProtocolClient(void)
 {
-    int      number_failed;    // The number of tests failed
-    int      server_fd;        // The mock server socket
-    Suite   *s;                // The testing suite to run
-    SRunner *sr;               // The suite runner
-
-    // Pass parameter into struct to be used by test cases
-    params.test_sockfd = sockfd;
+    int                     number_failed;      // The number of tests failed
+    int                     server_fd;          // The mock server socket
+    int                     client_fd;          // The client socket
+    struct sockaddr_storage client_addr;        // The client address
+    socklen_t               client_addr_len;    // The client address length
+    Suite                  *s;                  // The testing suite to run
+    SRunner                *sr;                 // The suite runner
 
     // Create mock server
     server_fd = create_server();
+    client_fd = accept_connection(server_fd, &client_addr, &client_addr_len);
+
+    // Pass parameter into struct to be used by test cases
+    params.client_fd = client_fd;
 
     // Create test suite
     s = protocol_client_suite();

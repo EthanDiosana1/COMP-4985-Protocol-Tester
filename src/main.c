@@ -10,7 +10,7 @@ int main(void)
 {
     // Run base protocol tests
     runCommonProtocolTests();
-    testProtocolClient(0);
+    testProtocolClient();
 
     return EXIT_SUCCESS;
 }

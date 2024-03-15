@@ -2,7 +2,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <netinet/in.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -155,4 +155,30 @@ static void start_listening(int sockfd)
     }
 
     printf("Listening for incoming connections...\n");
+}
+
+int accept_connection(int server_fd, struct sockaddr_storage *client_addr, socklen_t *client_addr_len)
+{
+    int  client_fd;
+    char client_host[NI_MAXHOST];
+    char client_service[NI_MAXSERV];
+
+    errno     = 0;
+    client_fd = accept(server_fd, (struct sockaddr *)client_addr, client_addr_len);
+
+    if(client_fd == -1)
+    {
+        return -1;
+    }
+
+    if(getnameinfo((struct sockaddr *)client_addr, *client_addr_len, client_host, NI_MAXHOST, client_service, NI_MAXSERV, 0) == 0)
+    {
+        printf("Accepted a new connection from %s:%s\n", client_host, client_service);
+    }
+    else
+    {
+        printf("Unable to get client information\n");
+    }
+
+    return client_fd;
 }
