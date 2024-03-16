@@ -225,8 +225,9 @@ START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-no
 // Create test suite
 Suite *protocol_client_suite(void)
 {
-    Suite *s;
-    TCase *tc_core;
+    Suite    *s;
+    TCase    *tc_core;
+    const int timeout = 10;
 
     s       = suite_create("Client Tests");
     tc_core = tcase_create("Core");
@@ -238,6 +239,9 @@ Suite *protocol_client_suite(void)
     tcase_add_test(tc_core, test_client_help_command);
     tcase_add_test(tc_core, test_client_username_command);
     tcase_add_test(tc_core, test_client_userlist_command);
+
+    // Set timeout timer to 10 seconds
+    tcase_set_timeout(tc_core, timeout);
 
     // Add test case to the test suite
     suite_add_tcase(s, tc_core);
