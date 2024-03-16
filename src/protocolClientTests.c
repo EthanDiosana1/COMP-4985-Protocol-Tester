@@ -1,6 +1,7 @@
 #include "../include/protocolClientTests.h"
 #include "../include/protocolMockServer.h"
 #include <check.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -23,7 +24,38 @@ START_TEST(test_client_connection)    // NOLINT(cppcoreguidelines-avoid-non-cons
 // Test for writing correct message format
 START_TEST(test_client_message_format)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.client_fd);
+    ssize_t     bytes_read;
+    uint8_t     version;
+    uint16_t    contentSize;
+    char       *actualContent   = {0};
+    const char *expectedContent = "Hello World\n";
+
+    printf("Type \"Hello World\"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.client_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+    ck_assert_int_eq(1, version); // Check version
+
+    // Read content size
+    read(params.client_fd, &contentSize, sizeof(contentSize));
+    ck_assert_int_eq(strlen(expectedContent), contentSize); // Check content size
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.client_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+    ck_assert_str_eq(expectedContent, actualContent); // Check content
+
+    free(actualContent);
 }
 
 // Test for /w command
