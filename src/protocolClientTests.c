@@ -189,6 +189,37 @@ START_TEST(test_client_username_command)    // NOLINT(cppcoreguidelines-avoid-no
 // Test for /ul command
 START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+
+    printf("Type \"/ul\"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.client_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.client_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for user list command
+    ck_assert_str_eq("/ul\n", actualContent);
+
+    free(actualContent);
 }
 
 // Create test suite
