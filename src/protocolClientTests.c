@@ -37,11 +37,11 @@ START_TEST(test_client_message_format)    // NOLINT(cppcoreguidelines-avoid-non-
     {
         bytes_read = read(params.client_fd, &version, sizeof(version));
     } while(bytes_read < 1);
-    ck_assert_int_eq(1, version); // Check version
+    ck_assert_int_eq(1, version);    // Check version
 
     // Read content size
     read(params.client_fd, &contentSize, sizeof(contentSize));
-    ck_assert_int_eq(strlen(expectedContent), contentSize); // Check content size
+    ck_assert_int_eq(strlen(expectedContent), contentSize);    // Check content size
 
     // Allocate memory for the content string
     actualContent = malloc(contentSize + 1);
@@ -53,7 +53,7 @@ START_TEST(test_client_message_format)    // NOLINT(cppcoreguidelines-avoid-non-
     // Read content string
     read(params.client_fd, actualContent, contentSize);
     actualContent[contentSize] = '\0';
-    ck_assert_str_eq(expectedContent, actualContent); // Check content
+    ck_assert_str_eq(expectedContent, actualContent);    // Check content
 
     free(actualContent);
 }
@@ -61,7 +61,49 @@ START_TEST(test_client_message_format)    // NOLINT(cppcoreguidelines-avoid-non-
 // Test for /w command
 START_TEST(test_client_whisper_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.client_fd);
+    ssize_t     bytes_read;
+    uint8_t     version;
+    uint16_t    contentSize;
+    char       *actualContent = {0};
+    char       *token;
+    char       *savePtr;
+    const char *delimiter = " ";
+
+    printf("Type \"/w c1 Hi\"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.client_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.client_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for whisper command
+    token = strtok_r(actualContent, delimiter, &savePtr);
+    ck_assert_str_eq("/w", token);
+
+    // Check for username
+    token = strtok_r(NULL, delimiter, &savePtr);
+    ck_assert_str_eq("c1", token);
+
+    // Check for content
+    token = strtok_r(NULL, delimiter, &savePtr);
+    ck_assert_str_eq("Hi\n", token);
+
+    free(actualContent);
 }
 
 // Test for /h command
