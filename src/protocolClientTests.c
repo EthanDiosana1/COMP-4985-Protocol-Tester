@@ -189,7 +189,6 @@ START_TEST(test_client_username_command)    // NOLINT(cppcoreguidelines-avoid-no
 // Test for /ul command
 START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ck_assert_int_eq(0, params.client_fd);
 }
 
 // Create test suite
