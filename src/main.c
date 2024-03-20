@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 // Testing suites
-#include "protocolCommonTests.h"
+#include "../include/protocolCommonTests.h"
 
 // Main function to run the tests
 int main(void)
