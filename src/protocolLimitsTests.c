@@ -1,6 +1,20 @@
 #include "protocolLimitsTests.h"
 #include <check.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+/**
+ * @brief Contains global variables for protocol limits.
+ */
+// struct protocol_limits_globals {
+//
+//     int client_fd;
+//     int server_fd;
+//
+// };
+
+// Declare a struct with the globals.
+// static struct protocol_limits_globals globals;
 
 Suite *protocol_limits_suite(void);
 
@@ -75,6 +89,8 @@ int testProtocolLimits(void)
     Suite   *s;                // The testing suite to run
     SRunner *sr;               // The suite runner
 
+    printf("----- PROTOCOL LIMITS TESTS START -----\n");
+
     // Create test suite
     s = protocol_limits_suite();
 
@@ -89,6 +105,8 @@ int testProtocolLimits(void)
 
     // Clean up
     srunner_free(sr);
+
+    printf("----- PROTOCOL LIMITS TESTS END -----\n");
 
     // Return status
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
