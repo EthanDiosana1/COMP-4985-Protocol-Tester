@@ -21,18 +21,15 @@ START_TEST(test_server_manager_connection)    // NOLINT(cppcoreguidelines-avoid-
     ck_assert_int_ne(-1, params.server_manager_fd);    // Fail if client_fd == -1
 }
 
-// Test for /s command
-START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+// Test for password
+START_TEST(test_server_manager_password)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ssize_t     bytes_read;
-    uint8_t     version;
-    uint16_t    contentSize;
-    char       *actualContent = {0};
-    char       *token;
-    char       *savePtr;
-    const char *delimiter = " ";
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
 
-    printf("Type \"/s 192.168.0.1\"\n");
+    printf("Type server password\n");
 
     // Constantly read until bytes are read
     do
@@ -54,13 +51,43 @@ START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avo
     read(params.server_manager_fd, actualContent, contentSize);
     actualContent[contentSize] = '\0';
 
-    // Check for whisper command
-    token = strtok_r(actualContent, delimiter, &savePtr);
-    ck_assert_str_eq("/s", token);
+    // Check for passowrd
+    ck_assert_str_eq("hellyabrother\n", actualContent);
 
-    // Check for username
-    token = strtok_r(NULL, delimiter, &savePtr);
-    ck_assert_str_eq("192.168.0.1\n", token);
+    free(actualContent);
+}
+
+// Test for /s command
+START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+
+    printf("Type \"/s\"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.server_manager_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    ck_assert_str_eq("/s\n", actualContent);
 
     free(actualContent);
 }
@@ -68,15 +95,12 @@ START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avo
 // Test for /s command
 START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ssize_t     bytes_read;
-    uint8_t     version;
-    uint16_t    contentSize;
-    char       *actualContent = {0};
-    char       *token;
-    char       *savePtr;
-    const char *delimiter = " ";
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
 
-    printf("Type \"/q 192.168.0.1\"\n");
+    printf("Type \"/q\"\n");
 
     // Constantly read until bytes are read
     do
@@ -98,13 +122,7 @@ START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoi
     read(params.server_manager_fd, actualContent, contentSize);
     actualContent[contentSize] = '\0';
 
-    // Check for whisper command
-    token = strtok_r(actualContent, delimiter, &savePtr);
-    ck_assert_str_eq("/q", token);
-
-    // Check for username
-    token = strtok_r(NULL, delimiter, &savePtr);
-    ck_assert_str_eq("192.168.0.1\n", token);
+    ck_assert_str_eq("/q\n", actualContent);
 
     free(actualContent);
 }
@@ -120,6 +138,7 @@ Suite *protocol_server_manager_suite(void)
 
     // Add tests to the test case
     tcase_add_test(tc_core, test_server_manager_connection);
+    tcase_add_test(tc_core, test_server_manager_password);
     tcase_add_test(tc_core, test_server_manager_start_command);
     tcase_add_test(tc_core, test_server_manager_quit_command);
 
