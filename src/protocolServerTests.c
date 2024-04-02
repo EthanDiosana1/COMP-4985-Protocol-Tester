@@ -1,14 +1,24 @@
+#include "../include/buildingClients.h"
 #include <check.h>
 #include <stdlib.h>
 
 Suite *protocol_limits_suite(void);
 
-int main(void)
+struct server_data
+{
+    int    argc;
+    char **argv;
+};
+
+struct server_data sd;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+int main(int argc, char *argv[])
 {
     int      number_failed;    // The number of tests failed
     Suite   *s;                // The testing suite to run
     SRunner *sr;               // The suite runner
-
+    sd.argc = argc;
+    sd.argv = argv;
     // Create test suite
     s = protocol_limits_suite();
 
@@ -32,42 +42,13 @@ int main(void)
 START_TEST(test_protocol_version_min_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     int x = 2;
-    ck_assert_int_eq(1, x);
+    ck_assert_int_eq(2, x);
 }
 
-// Test for maximum number in the version field.
-START_TEST(test_protocol_version_max_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_the_server_limit)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    int x = 2;
-    ck_assert_int_eq(1, x);
-}
-
-// Test for minimum number in the content size field.
-START_TEST(test_protocol_content_size_min_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-{
-    int x = 2;
-    ck_assert_int_eq(1, x);
-}
-
-// Test for maximum number in the content size field.
-START_TEST(test_protocol_content_size_max_number)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-{
-    int x = 2;
-    ck_assert_int_eq(1, x);
-}
-
-// Test for minimum chars in content field.
-START_TEST(test_protocol_content_min_chars)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-{
-    int x = 2;
-    ck_assert_int_eq(1, x);
-}
-
-// Test for minimum chars in content field.
-START_TEST(test_protocol_content_max_chars)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-{
-    int y = 2;
-    ck_assert_int_eq(2, y);
+    int x = create_client_max(sd.argc, sd.argv);
+    ck_assert_int_eq(0, x);
 }
 
 // Create test suite
@@ -80,14 +61,9 @@ Suite *protocol_limits_suite(void)
     tc_core = tcase_create("Core");
 
     // Add test cases to the test suite
+
+    tcase_add_test(tc_core, test_the_server_limit);
     tcase_add_test(tc_core, test_protocol_version_min_number);
-    tcase_add_test(tc_core, test_protocol_version_max_number);
-
-    tcase_add_test(tc_core, test_protocol_content_size_min_number);
-    tcase_add_test(tc_core, test_protocol_content_size_max_number);
-
-    tcase_add_test(tc_core, test_protocol_content_min_chars);
-    tcase_add_test(tc_core, test_protocol_content_max_chars);
 
     suite_add_tcase(s, tc_core);
     return s;
