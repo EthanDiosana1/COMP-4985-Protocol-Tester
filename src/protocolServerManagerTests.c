@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define ARRAY_LENGTH 32
+
 struct params
 {
     int server_manager_fd;
@@ -24,10 +26,11 @@ START_TEST(test_server_manager_connection)    // NOLINT(cppcoreguidelines-avoid-
 // Test for password
 START_TEST(test_server_manager_password)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ssize_t  bytes_read;
-    uint8_t  version;
-    uint16_t contentSize;
-    char    *actualContent = {0};
+    ssize_t    bytes_read;
+    uint8_t    version;
+    uint16_t   contentSize;
+    const char response[ARRAY_LENGTH] = "ACCEPTED";
+    char      *actualContent          = {0};
 
     printf("Type server password\n");
 
@@ -54,16 +57,58 @@ START_TEST(test_server_manager_password)    // NOLINT(cppcoreguidelines-avoid-no
     // Check for passowrd
     ck_assert_str_eq("hellyabrother\n", actualContent);
 
+    contentSize = (uint16_t)strlen(response);
+    write(params.server_manager_fd, &version, sizeof(version));
+    write(params.server_manager_fd, &contentSize, sizeof(contentSize));
+    write(params.server_manager_fd, response, contentSize);
+
+    free(actualContent);
+}
+
+// Test for reading messages
+START_TEST(test_server_manager_read_message)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+
+    printf("Type received acknowledgement\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.server_manager_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for passowrd
+    ck_assert_str_eq("ACCEPTED\n", actualContent);
+
     free(actualContent);
 }
 
 // Test for /s command
 START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
-    ssize_t  bytes_read;
-    uint8_t  version;
-    uint16_t contentSize;
-    char    *actualContent = {0};
+    ssize_t    bytes_read;
+    uint8_t    version;
+    uint16_t   contentSize;
+    const char response[ARRAY_LENGTH] = "STARTED";
+    char      *actualContent          = {0};
 
     printf("Type \"/s\"\n");
 
@@ -89,16 +134,107 @@ START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avo
 
     ck_assert_str_eq("/s\n", actualContent);
 
+    contentSize = (uint16_t)strlen(response);
+
+    write(params.server_manager_fd, &version, sizeof(version));
+    write(params.server_manager_fd, &contentSize, sizeof(contentSize));
+    write(params.server_manager_fd, response, contentSize);
+
     free(actualContent);
 }
 
-// Test for /s command
-START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+// Test for /d command
+START_TEST(test_server_manager_diagnostics_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t    bytes_read;
+    uint8_t    version;
+    uint16_t   contentSize;
+    const char response[ARRAY_LENGTH] = "4";
+    char      *actualContent          = {0};
+    const int  max_iterations         = 3;
+
+    printf("Type \"/d\"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.server_manager_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    ck_assert_str_eq("/d\n", actualContent);
+
+    contentSize = (uint16_t)strlen(response);
+
+    for(int i = 0; i < 3; i++)
+    {
+        write(params.server_manager_fd, &version, sizeof(version));
+        write(params.server_manager_fd, &contentSize, sizeof(contentSize));
+        write(params.server_manager_fd, response, contentSize);
+
+        sleep(max_iterations);
+    }
+
+    free(actualContent);
+}
+
+// Test for number of diagnostics read
+START_TEST(test_server_manager_number_of_diagnositcs)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     ssize_t  bytes_read;
     uint8_t  version;
     uint16_t contentSize;
     char    *actualContent = {0};
+
+    printf("Type number of received diagnostics\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.server_manager_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for passowrd
+    ck_assert_str_eq("3\n", actualContent);
+
+    free(actualContent);
+}
+
+// Test for /q command
+START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t    bytes_read;
+    uint8_t    version;
+    uint16_t   contentSize;
+    const char response[ARRAY_LENGTH] = "STOPPED";
+    char      *actualContent          = {0};
 
     printf("Type \"/q\"\n");
 
@@ -124,6 +260,48 @@ START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoi
 
     ck_assert_str_eq("/q\n", actualContent);
 
+    contentSize = (uint16_t)strlen(response);
+
+    write(params.server_manager_fd, &version, sizeof(version));
+    write(params.server_manager_fd, &contentSize, sizeof(contentSize));
+    write(params.server_manager_fd, response, contentSize);
+
+    free(actualContent);
+}
+
+// Test for reading quit acknowledgement
+START_TEST(test_server_manager_read_quit_acknowledgement)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+
+    printf("Type received acknowledgement\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.server_manager_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for passowrd
+    ck_assert_str_eq("STOPPED\n", actualContent);
+
     free(actualContent);
 }
 
@@ -139,8 +317,12 @@ Suite *protocol_server_manager_suite(void)
     // Add tests to the test case
     tcase_add_test(tc_core, test_server_manager_connection);
     tcase_add_test(tc_core, test_server_manager_password);
+    tcase_add_test(tc_core, test_server_manager_read_message);
     tcase_add_test(tc_core, test_server_manager_start_command);
+    tcase_add_test(tc_core, test_server_manager_diagnostics_command);
+    tcase_add_test(tc_core, test_server_manager_number_of_diagnositcs);
     tcase_add_test(tc_core, test_server_manager_quit_command);
+    tcase_add_test(tc_core, test_server_manager_read_quit_acknowledgement);
 
     // Set timeout timer to 10 seconds
     tcase_set_timeout(tc_core, timeout);
