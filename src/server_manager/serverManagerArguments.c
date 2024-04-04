@@ -14,9 +14,12 @@ void print_server_manager_arguments(struct server_manager_arguments arguments)
 
 void free_server_manager_arguments(struct server_manager_arguments *arguments)
 {
+
+    printf("[freeing server manager arguments...]\n");
     free(arguments->ip);
     free(arguments->passcode);
     free(arguments);
+    printf("[server manager arguments freed]\n");
 }
 
 struct server_manager_arguments *parse_args(int argc, const char *argv[])
