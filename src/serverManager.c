@@ -37,9 +37,6 @@ int main(const int argc, const char *argv[])
         return EXIT_FAILURE;
     }
 
-    // printf("Continuing with settings: \n\tip: %s\n\tport: %u\n\tpasscode: %s\n",
-    //         arguments->ip, arguments->port, arguments->passcode);
-
     free_server_manager_arguments(arguments);
 
     display_divider("SERVER MANAGER END");

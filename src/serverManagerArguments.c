@@ -32,11 +32,9 @@ struct server_manager_arguments *parse_args(int argc, const char *argv[])
         fprintf(stderr, "invalid number of arguments");
         return NULL;
     }
-
     printf("valid number of arguments...\n");
 
-    // Convert the port from char to uint16_t.
-
+    // Allocate memory for the arguments struct.
     arguments = malloc(sizeof(struct server_manager_arguments));
     if(arguments == NULL)
     {
@@ -50,11 +48,15 @@ struct server_manager_arguments *parse_args(int argc, const char *argv[])
     port = PORT_MIN;
     // TODO: validate ip using ipTools.
 
+    // Set the arguments.
     arguments->ip       = strndup(argv[1], strlen(argv[1]));
     arguments->port     = port;
     arguments->passcode = strndup(argv[3], strlen(argv[3]));
 
-    printf("arguments struct params set...\n");
+    printf("arguments struct params set...\n\n");
+
+    print_server_manager_arguments(*arguments);
+
     display_divider("parse_args end");
 
     return arguments;
