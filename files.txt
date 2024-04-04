@@ -1,2 +1,2 @@
 main src/main.c include/protocolLimitsTests.h src/protocolLimitsTests.c include/protocolCommonTests.h src/protocolCommonTests.c check
-serverManager src/serverManager.c
+serverManager src/serverManager.c include/ipTools.h src/ipTools.c
