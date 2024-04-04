@@ -1,4 +1,5 @@
 #include "ipTools.h"
+#include <stdio.h>
 
 /**
  * @brief Converts a string to a uint16_t.
@@ -7,6 +8,7 @@
  */
 uint16_t str_to_uint16_t(const char *str)
 {
+    printf("In progres.. %s\n", str);
     return 0;
 }
 
@@ -17,5 +19,6 @@ uint16_t str_to_uint16_t(const char *str)
  */
 bool is_valid_ipv4(const char *ip)
 {
+    printf("In progres... %s\n", ip);
     return false;
 }
