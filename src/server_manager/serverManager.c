@@ -14,8 +14,8 @@
 
 // MY LIBRARIES
 #include "ipTools.h"
-#include "serverManagerArguments.h"
-#include "serverManagerTools.h"
+#include "server_manager/serverManagerArguments.h"
+#include "server_manager/serverManagerTools.h"
 
 /**
  * @brief Connects to a server with the given params.
