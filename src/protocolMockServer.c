@@ -20,7 +20,7 @@ static void      start_listening(int sockfd);
 
 int create_server(void)
 {
-    const char             *address = "192.168.0.191";
+    const char             *address = "127.0.0.1";
     in_port_t               port;
     int                     sockfd;
     struct sockaddr_storage addr;

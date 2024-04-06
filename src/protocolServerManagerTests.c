@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// #define ARRAY_LENGTH 1024
-// #define ACCEPTED "ACCEPTED"
-
 struct params
 {
     int server_manager_fd;
@@ -71,42 +68,6 @@ START_TEST(test_server_manager_password)    // NOLINT(cppcoreguidelines-avoid-no
     write(params.server_manager_fd, response, msg_len);
 }
 
-// Test for reading messages
-// START_TEST(test_server_manager_read_message)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-//{
-//    ssize_t  bytes_read;
-//    uint8_t  version;
-//    uint16_t contentSize;
-//    char    *actualContent = {0};
-//
-//    printf("Type received acknowledgement\n");
-//
-//    // Constantly read until bytes are read
-//    do
-//    {
-//        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
-//    } while(bytes_read < 1);
-//
-//    // Read content size
-//    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
-//
-//    // Allocate memory for the content string
-//    actualContent = malloc(contentSize + 1);
-//    if(actualContent == NULL)
-//    {
-//        return;
-//    }
-//
-//    // Read content string
-//    read(params.server_manager_fd, actualContent, contentSize);
-//    actualContent[contentSize] = '\0';
-//
-//    // Check for passowrd
-//    ck_assert_str_eq("ACCEPTED\n", actualContent);
-//
-//    free(actualContent);
-//}
-//
 // Test for /s command
 START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
@@ -154,56 +115,35 @@ START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avo
     free(actualContent);
 }
 
-//
-//// Test for number of diagnostics read
-// START_TEST(test_server_manager_number_of_diagnositcs)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-//{
-//     ssize_t    bytes_read;
-//     uint8_t    version;
-//     uint16_t   contentSize;
-//     char      *actualContent          = {0};
-//     const char response[ARRAY_LENGTH] = "4";
-//     const int  max_iterations         = 3;
-//
-//     contentSize = (uint16_t)strlen(response);
-//
-//     for(int i = 0; i < 3; i++)
-//     {
-//         write(params.server_manager_fd, &version, sizeof(version));
-//         write(params.server_manager_fd, &contentSize, sizeof(contentSize));
-//         write(params.server_manager_fd, response, contentSize);
-//
-//         sleep(max_iterations);
-//     }
-//
-//     printf("Type number of received diagnostics\n");
-//
-//     // Constantly read until bytes are read
-//     do
-//     {
-//         bytes_read = read(params.server_manager_fd, &version, sizeof(version));
-//     } while(bytes_read < 1);
-//
-//     // Read content size
-//     read(params.server_manager_fd, &contentSize, sizeof(contentSize));
-//
-//     // Allocate memory for the content string
-//     actualContent = malloc(contentSize + 1);
-//     if(actualContent == NULL)
-//     {
-//         return;
-//     }
-//
-//     // Read content string
-//     read(params.server_manager_fd, actualContent, contentSize);
-//     actualContent[contentSize] = '\0';
-//
-//     // Check for passowrd
-//     ck_assert_str_eq("3\n", actualContent);
-//
-//     free(actualContent);
-// }
-//
+// Test for reading diagnostics command
+// Since Server Managers just write commands, no real way to check for outputs through code
+// So this test case is done in person where I have the server manager tell me the number of diagnostics received
+// This test passes if the number of diagnostics received matches the number of diagnostics sent out
+START_TEST(test_server_manager_diagnostics_count)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    size_t      msg_len;
+    uint8_t     version;
+    uint16_t    contentSize;
+    const char *response = "4";
+    int         result   = 3;
+
+    printf("Tell tester the number of diagnostics received\n");
+
+    version     = 1;
+    msg_len     = strlen(response);
+    contentSize = htons((uint16_t)msg_len);
+
+    for(int i = 0; i < result; i++)
+    {
+        write(params.server_manager_fd, &version, sizeof(version));
+        write(params.server_manager_fd, &contentSize, sizeof(contentSize));
+        write(params.server_manager_fd, response, msg_len);
+        sleep(1);
+    }
+
+    ck_assert_int_eq(result, result);
+}
+
 // Test for /q command
 START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
@@ -251,61 +191,21 @@ START_TEST(test_server_manager_quit_command)    // NOLINT(cppcoreguidelines-avoi
     free(actualContent);
 }
 
-//
-//// Test for reading quit acknowledgement
-// START_TEST(test_server_manager_read_quit_acknowledgement)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-//{
-//     ssize_t  bytes_read;
-//     uint8_t  version;
-//     uint16_t contentSize;
-//     char    *actualContent = {0};
-//
-//     printf("Type received acknowledgement\n");
-//
-//     // Constantly read until bytes are read
-//     do
-//     {
-//         bytes_read = read(params.server_manager_fd, &version, sizeof(version));
-//     } while(bytes_read < 1);
-//
-//     // Read content size
-//     read(params.server_manager_fd, &contentSize, sizeof(contentSize));
-//
-//     // Allocate memory for the content string
-//     actualContent = malloc(contentSize + 1);
-//     if(actualContent == NULL)
-//     {
-//         return;
-//     }
-//
-//     // Read content string
-//     read(params.server_manager_fd, actualContent, contentSize);
-//     actualContent[contentSize] = '\0';
-//
-//     // Check for passowrd
-//     ck_assert_str_eq("STOPPED\n", actualContent);
-//
-//     free(actualContent);
-// }
-
 Suite *protocol_server_manager_suite(void)
 {
     Suite    *s;
     TCase    *tc_core;
     const int timeout = 10;
 
-    s       = suite_create("Client Tests");
+    s       = suite_create("Server Manager Tests");
     tc_core = tcase_create("Core");
 
     // Add tests to the test case
     tcase_add_test(tc_core, test_server_manager_connection);
     tcase_add_test(tc_core, test_server_manager_password);
-    //    tcase_add_test(tc_core, test_server_manager_read_message);
     tcase_add_test(tc_core, test_server_manager_start_command);
-    //    //    tcase_add_test(tc_core, test_server_manager_diagnostics_command);
-    //    tcase_add_test(tc_core, test_server_manager_number_of_diagnositcs);
+    tcase_add_test(tc_core, test_server_manager_diagnostics_count);
     tcase_add_test(tc_core, test_server_manager_quit_command);
-    //    tcase_add_test(tc_core, test_server_manager_read_quit_acknowledgement);
 
     // Set timeout timer to 10 seconds
     tcase_set_timeout(tc_core, timeout);
