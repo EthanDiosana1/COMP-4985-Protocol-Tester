@@ -1,3 +1,3 @@
 main src/main.c include/protocolLimitsTests.h src/protocolLimitsTests.c include/protocolCommonTests.h src/protocolCommonTests.c check
 
-serverManager src/server_manager/serverManager.c include/ipTools.h src/ipTools.c include/server_manager/serverManagerArguments.h src/server_manager/serverManagerArguments.c include/server_manager/serverManagerTools.h src/server_manager/serverManagerTools.c
+serverManager src/server_manager/serverManager.c include/ipTools.h include/stringTools.h src/stringTools.c src/ipTools.c include/server_manager/serverManagerArguments.h src/server_manager/serverManagerArguments.c include/server_manager/serverManagerTools.h src/server_manager/serverManagerTools.c
