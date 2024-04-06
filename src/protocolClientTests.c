@@ -41,6 +41,8 @@ START_TEST(test_client_message_format)    // NOLINT(cppcoreguidelines-avoid-non-
 
     // Read content size
     read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
     ck_assert_int_eq(strlen(expectedContent), contentSize);    // Check content size
 
     // Allocate memory for the content string
@@ -79,6 +81,8 @@ START_TEST(test_client_whisper_command)    // NOLINT(cppcoreguidelines-avoid-non
 
     // Read content size
     read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
 
     // Allocate memory for the content string
     actualContent = malloc(contentSize + 1);
@@ -125,6 +129,8 @@ START_TEST(test_client_help_command)    // NOLINT(cppcoreguidelines-avoid-non-co
     // Read content size
     read(params.client_fd, &contentSize, sizeof(contentSize));
 
+    contentSize = ntohs(contentSize);
+
     // Allocate memory for the content string
     actualContent = malloc(contentSize + 1);
     if(actualContent == NULL)
@@ -163,6 +169,8 @@ START_TEST(test_client_username_command)    // NOLINT(cppcoreguidelines-avoid-no
 
     // Read content size
     read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
 
     // Allocate memory for the content string
     actualContent = malloc(contentSize + 1);
@@ -205,6 +213,8 @@ START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-no
     // Read content size
     read(params.client_fd, &contentSize, sizeof(contentSize));
 
+    contentSize = ntohs(contentSize);
+
     // Allocate memory for the content string
     actualContent = malloc(contentSize + 1);
     if(actualContent == NULL)
@@ -222,12 +232,96 @@ START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-no
     free(actualContent);
 }
 
+// Test for reading minimum fields
+START_TEST(test_client_min_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+
+    printf("Press enter\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.client_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    ck_assert_int_eq(1, version);
+
+    // Read content size
+    read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
+
+    ck_assert_int_eq(1, contentSize);    // Check content size
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.client_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for content
+    ck_assert_str_eq("\n", actualContent);
+
+    free(actualContent);
+}
+
+// Test for reading maximum fields
+START_TEST(test_client_max_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+
+    printf("Set version to UINT8_MAX\nSet content-size to UINT16_MAX\nType \" \"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.client_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    ck_assert_int_eq(UINT8_MAX, version);
+
+    // Read content size
+    read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
+
+    ck_assert_int_eq(UINT16_MAX, contentSize);    // Check content size
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.client_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for user list command
+    ck_assert_str_eq("\n", actualContent);
+
+    free(actualContent);
+}
+
 // Create test suite
 Suite *protocol_client_suite(void)
 {
     Suite    *s;
     TCase    *tc_core;
-    const int timeout = 10;
+    const int timeout = 30;
 
     s       = suite_create("Client Tests");
     tc_core = tcase_create("Core");
@@ -239,6 +333,8 @@ Suite *protocol_client_suite(void)
     tcase_add_test(tc_core, test_client_help_command);
     tcase_add_test(tc_core, test_client_username_command);
     tcase_add_test(tc_core, test_client_userlist_command);
+    tcase_add_test(tc_core, test_client_min_fields);
+    tcase_add_test(tc_core, test_client_max_fields);
 
     // Set timeout timer to 10 seconds
     tcase_set_timeout(tc_core, timeout);
