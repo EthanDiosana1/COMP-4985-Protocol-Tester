@@ -48,7 +48,7 @@ static void sigtstp_handler(int signum);
 static volatile sig_atomic_t sigtstp_flag = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 #define NUM_CLIENTS 32
 #define NUM_PAIR 2
-#define BUFFER 5000
+#define BUFFER UINT16_MAX
 
 // ----- Main Function -----
 
@@ -713,12 +713,507 @@ int check_username_already_exists(int argc, char *argv[])
     {
         socket_close(client_sockets[i]);
     }
-    //may change value if servers implement error code
+    // may change value if servers implement error code
     if(strstr(readMessage, "taken") != NULL)
     {
         return EXIT_SUCCESS;
     }
     return EXIT_FAILURE;
+}
+
+// checks if server can hold max version size
+int check_version_max(int argc, char *argv[])
+{
+    uint8_t  version;
+    uint16_t contentSize;
+    uint16_t converted_contentSize;
+    uint8_t  read_version;
+    uint16_t read_contentSize;
+    char     readMessage[BUFFER];
+
+    char                   *ip_address;
+    char                   *port_str;
+    in_port_t               port;
+    int                     client_sockets[NUM_CLIENTS];
+    struct sockaddr_storage addr;
+
+    ip_address = NULL;
+    port_str   = NULL;
+    version    = UINT8_MAX;
+
+    parse_arguments(argc, argv, &ip_address, &port_str);
+    handle_arguments(argv[0], ip_address, port_str, &port);
+    convert_address(ip_address, &addr);
+
+    // create two clients, one to input username, the other to check
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);
+        socket_connect(client_sockets[i], &addr, port);
+    }
+    sleep(1);    // allow connections to settle
+
+    // read welcome msg from client2
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+
+    // write message from client1 with max version number
+    write(client_sockets[0], &version, sizeof(uint8_t));
+    contentSize           = (uint16_t)strlen("checkusout");
+    converted_contentSize = htons(contentSize);
+    write(client_sockets[0], &converted_contentSize, sizeof(uint16_t));
+    write(client_sockets[0], "checkusout", contentSize);
+
+    //    // client2 read message from client1
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        printf("read failed");
+        return -1;
+    }
+
+    // close all sockets
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        socket_close(client_sockets[i]);
+    }
+
+    if(strstr(readMessage, "checkusout") != NULL)
+    {
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FAILURE;
+}
+
+// checks if server can hold max version size
+int check_version_min(int argc, char *argv[])
+{
+    uint8_t  version;
+    uint16_t contentSize;
+    uint16_t converted_contentSize;
+    uint8_t  read_version;
+    uint16_t read_contentSize;
+    char     readMessage[BUFFER];
+
+    char                   *ip_address;
+    char                   *port_str;
+    in_port_t               port;
+    int                     client_sockets[NUM_CLIENTS];
+    struct sockaddr_storage addr;
+
+    ip_address = NULL;
+    port_str   = NULL;
+    version    = 1;
+
+    parse_arguments(argc, argv, &ip_address, &port_str);
+    handle_arguments(argv[0], ip_address, port_str, &port);
+    convert_address(ip_address, &addr);
+
+    // create two clients, one to input username, the other to check
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);
+        socket_connect(client_sockets[i], &addr, port);
+    }
+    sleep(1);    // allow connections to settle
+
+    // read welcome msg from client2
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+
+    // write message from client1 with max version number
+    write(client_sockets[0], &version, sizeof(uint8_t));
+    contentSize           = (uint16_t)strlen("checkusout");
+    converted_contentSize = htons(contentSize);
+    write(client_sockets[0], &converted_contentSize, sizeof(uint16_t));
+    write(client_sockets[0], "checkusout", contentSize);
+
+    //    // client2 read message from client1
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        printf("read failed");
+        return -1;
+    }
+
+    // close all sockets
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        socket_close(client_sockets[i]);
+    }
+
+    if(strstr(readMessage, "checkusout") != NULL)
+    {
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FAILURE;
+}
+
+// checks if server can hold max content size
+int check_content_size_max(int argc, char *argv[])
+{
+    uint8_t  version;
+    uint16_t contentSize;
+    uint16_t converted_contentSize;
+    uint8_t  read_version;
+    uint16_t read_contentSize;
+    char     readMessage[BUFFER];
+    // 2730 characters = 21840 bits x 3 = 65520 near max
+    const char *content =
+        "rjhxkdoiryhtcixgdlymibjrokascocefagtrzwfkrrirgahkmmngavkttklgyflevjuaynphxhfhptlohgqegakysbsgkwajcxpmppbbbefdsnzaqgefdpvhllfumnxzppctgxolvmxinpbsqegldetzvivrilvgxbpfekqlpakguxlaxpgfnfljkunrvsklclmzbdcobpjwnririxilqkmhtoygmjetwzskvfawcjmlmypvieuoaljpdwyauntdkhnjzeqtslgskitffqikxnkudqfvneedtulfpbdoxbxozjnokwunszawlaqnlrgpkjiiznutslzdrtjfypcykqwterxuxdvjxsyvaptspcxklgvallalizcutdbavfhjfgcmwkwxxzcxypstxbdtpkkraehgtaajaqxghhyhwdvixggljisbmnzkwcpgdwnwkerfrjujdgamwofyhppkxyrtiyvzvgkyougzcpfunwghvcmygcgsqwiwogkohxpmpuwriyvyewmxowjrtkyzmejwsoicppxcrrhxpemdqdlirpuyincpqanrzuoamlblzkxhaltiqmskmkptoeixddfgprfrtjdosserjyczpedjbzivmsglgixysvgqmrsmqznrenierejompvdkxnwmkmdbrjedyhtpxufncdjpbeyzyxvbvecsrgxtkowaldtgdnqcpzvzluexwzcjyamtvbutikfheouoiiezxcihvvaupnabvnseftgphfpcqabyngnbkijnxzaubrauhjcpsmcdbuqodfwxykqnqmserjfbmfckonmyqlutctbhbtzqfxowvvfandaxbhpahofxsbguqizmefgzrsnuupuxkdobohjldaxjkkinfxgkylsmdyyyttmoztbonrxwymazhijsvesaepmfnimvoqcmgwfujfiiaqgaqmeeuhrrdoobzcaywbspmmuquawsbatzsfnlipqkcqvzvwwudoomzowebnxxquncbsitcoqhxhdksuijajopmffkiletopluzkewaexnckrbcyhlpkftatzoqhtnjgvntvtvddjoyswcbazxtwyhbboljmtgubnhjcelaregythowmkxcbvhktdejjfnthfozrjntpnfquowpjjdvdartowuhcfmdcpetaeqgkgigvpptqvwirtmfkzaeqydixvglcxvkfzkcvxvsiwyohyclcbjihqmdocxvxwiwraskqefkmjaqhawxnbntujwtassyyauriexxnwhezvxxwssrvxzbpzpohbwsxmswspxqizfjegwdhjdxnsgbaglfhzzvufietahydrnbbwpqfworlhtylwycivhvdbgiuteymejbksurhyksrghwgvpmxlsuesxltycquskjnopjaymufyvfqpwopzwcntcjvsgkblkhmaesincrhpqctpktstyayutncdzjxymbemnvmpuwefupmodpkxigifhpdllwnwjmxdydhcoudkdagpoffoiefbjuzkpkicbbtwneswwjgdjpymiqcomvhgmqypbmtrcjbbmrvzvawyaebatimwjwwalyfkhwhhznmsvxnifqzkjuvauhgltpkvvkuryseqjkqrstupnmzodzvoohoklhgbdlsfjxftwoqcogqxnkhbbbhsgqzqmemlhjeidgahtnwgxdvztqzniubgjknqivlnxkpdjxhezjkdevxsiseuvmfpazshlawgndsrvscjodfcwrbhawjijsmmsabgnsmpyxjmdgvamzwuqtvhydujkrauvzfewqpsrxvcwdneiuywetxujhnbnippnavgumkaaksbgkndzpifqitcnpjhqimpbxyjwvkccvyssmhcuavkjjeiymetdzzrnajgewfbveytfsvjrwvulbogjcjmaofqiyphgivfoqsmrcmqhzfclauxsjvqwugkymtbnhzqcskuaiyanjkqmwoavmvjigkgzhfpcoaeagjukgvcxavqgizbdirbmokpebjgfwedbewqhrwmuqwgchhfthtuqpikotxhpbodaepfteqjihwggqtpuptzbdkmrbwausvskzhozfbuiaioucslvpypapfujgjpthlslttfyixqjxwfrqsyylsielqinqjbysdvdlzmspltkpglnxvgwxsmheqqvvqjwrpvitexkukivkukmxydbqpqrylfgrekxpqjwihhfvtjhccfxerjnrrphiyplbjxqodjywebjhqimzjomfdiqwqgxyoggcmxicsztqsqaxhevzfxtkflweppoxfougyyfymfygtstvauyqadwqlhwmvwykthlahdxdyxwnafrknefyvldetzuwbspfrprrumlnhloozqunqudfagokovjnvkbvceuafuivsikbdsduseegbmgtfhsclshlshokdxjcjaqoigziuvzfdehaybfavjaborscqdtywckvsbkajxxiydwdowjgvzeaqhuorbtilsnvvzkcgxahkujuavalqlquqfnpypnpzljqlxjjkeqetjftbxzmbbeebnpebwqrojftnpfgforcbixmunleyinxkytblugdgdyvrnsdxrgoljcrumazdxwjycegyfaqxigliyjnkxkfamirrovpmvzcbwdhvsycrmmknzyyuwrcccwntlcjomruaxnrwrfdglavbuarrpqhrysmbbz";
+    char                   *ip_address;
+    char                   *port_str;
+    in_port_t               port;
+    int                     client_sockets[NUM_CLIENTS];
+    struct sockaddr_storage addr;
+
+    ip_address = NULL;
+    port_str   = NULL;
+    version    = 1;
+
+    parse_arguments(argc, argv, &ip_address, &port_str);
+    handle_arguments(argv[0], ip_address, port_str, &port);
+    convert_address(ip_address, &addr);
+
+    // create two clients, one to input username, the other to check
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);
+        socket_connect(client_sockets[i], &addr, port);
+    }
+    sleep(1);    // allow connections to settle
+
+    // read welcome msg from client2
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+
+    // write message from client1 with max content size
+    write(client_sockets[0], &version, sizeof(uint8_t));
+    contentSize           = UINT16_MAX;
+    converted_contentSize = htons(contentSize);
+    write(client_sockets[0], &converted_contentSize, sizeof(uint16_t));
+    // should add up to UINT16_MAX
+    for(int i = 0; i < (NUM_PAIR + 1); i++)
+    {
+        write(client_sockets[0], content, strlen(content));
+    }
+    write(client_sockets[0], "a", strlen("a"));
+
+    //    // client2 read message from client1
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        printf("read failed");
+        return -1;
+    }
+
+    // close all sockets
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        socket_close(client_sockets[i]);
+    }
+
+    if(strstr(readMessage, "rjhxkdoiryhtcixgdlym") != NULL)
+    {
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FAILURE;
+}
+
+// checks if server can hold max version size
+int check_content_size_min(int argc, char *argv[])
+{
+    uint8_t                 version;
+    uint16_t                contentSize;
+    uint16_t                converted_contentSize;
+    uint8_t                 read_version;
+    uint16_t                read_contentSize;
+    char                    readMessage[BUFFER];
+    char                   *ip_address;
+    char                   *port_str;
+    in_port_t               port;
+    int                     client_sockets[NUM_CLIENTS];
+    struct sockaddr_storage addr;
+
+    ip_address = NULL;
+    port_str   = NULL;
+    version    = 1;
+
+    parse_arguments(argc, argv, &ip_address, &port_str);
+    handle_arguments(argv[0], ip_address, port_str, &port);
+    convert_address(ip_address, &addr);
+
+    // create two clients, one to input username, the other to check
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);
+        socket_connect(client_sockets[i], &addr, port);
+    }
+    sleep(1);    // allow connections to settle
+
+    // read welcome msg from client2
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+
+    // write message from client1 with max content size
+    write(client_sockets[0], &version, sizeof(uint8_t));
+    contentSize           = (uint16_t)strlen("i");
+    converted_contentSize = htons(contentSize);
+    write(client_sockets[0], &converted_contentSize, sizeof(uint16_t));
+    // should add up to UINT16_MAX
+    write(client_sockets[0], "i", contentSize);
+
+    //    // client2 read message from client1
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        printf("read failed");
+        return -1;
+    }
+
+    // close all sockets
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        socket_close(client_sockets[i]);
+    }
+
+    if(strstr(readMessage, "i") != NULL)
+    {
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FAILURE;
+}
+
+// checks if server can hold max version size
+int check_version_num(int argc, char *argv[])
+{
+    uint8_t                 version;
+    uint16_t                contentSize;
+    uint16_t                converted_contentSize;
+    uint8_t                 read_version;
+    uint16_t                read_contentSize;
+    char                    readMessage[BUFFER];
+    ssize_t                 bytes_read;
+    char                   *ip_address;
+    char                   *port_str;
+    in_port_t               port;
+    int                     client_sockets[NUM_CLIENTS];
+    struct sockaddr_storage addr;
+
+    ip_address = NULL;
+    port_str   = NULL;
+    version    = NUM_CLIENTS;
+
+    parse_arguments(argc, argv, &ip_address, &port_str);
+    handle_arguments(argv[0], ip_address, port_str, &port);
+    convert_address(ip_address, &addr);
+
+    // create two clients, one to input username, the other to check
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);
+        socket_connect(client_sockets[i], &addr, port);
+    }
+    sleep(1);    // allow connections to settle
+
+    // read welcome msg from client2
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+    read(client_sockets[1], &read_version, sizeof(uint8_t));
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+                                                 //        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        return -1;
+    }
+
+    // write message from client1 with max version number
+    write(client_sockets[0], &version, sizeof(uint8_t));
+    contentSize           = (uint16_t)strlen("checkusout");
+    converted_contentSize = htons(contentSize);
+    write(client_sockets[0], &converted_contentSize, sizeof(uint16_t));
+    write(client_sockets[0], "checkusout", contentSize);
+
+    //    // client2 read message from client1
+    bytes_read = read(client_sockets[1], &read_version, sizeof(uint8_t));
+    if(bytes_read <= 0)
+    {
+        return 0;
+    }
+    if(read_version != version)
+    {
+        return -1;
+    }
+    read(client_sockets[1], &read_contentSize, sizeof(uint16_t));
+    read_contentSize = ntohs(read_contentSize);
+    if(read_contentSize < BUFFER)
+    {
+        read(client_sockets[1], readMessage, read_contentSize);
+        readMessage[read_contentSize] = '\0';    // Null-terminate the received message
+        printf("\nRead version: %u\nContent Size: %u\nString: %s\n", read_version, read_contentSize, readMessage);
+    }
+    else
+    {
+        printf("read failed");
+        return -1;
+    }
+
+    // close all sockets
+    for(int i = 0; i < NUM_PAIR; i++)
+    {
+        socket_close(client_sockets[i]);
+    }
+
+    if(strstr(readMessage, "checkusout") != NULL)
+    {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }
 
 // ----- Function Definitions -----
