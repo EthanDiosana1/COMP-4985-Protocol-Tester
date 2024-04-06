@@ -10,7 +10,7 @@ void display_usage(void)
 
 void display_purpose(void)
 {
-    printf("Purpose: This app is meant to simulate a server manager for the     purpose of testing servers.\n");
+    printf("Purpose: This app is meant to simulate a server manager for the purpose of testing servers.\n");
 }
 
 void display_divider(const char *text)

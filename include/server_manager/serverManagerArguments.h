@@ -1,9 +1,9 @@
 #ifndef SERVER_MANAGER_ARGUMENTS
 #define SERVER_MANAGER_ARGUMENTS
 
-#include <stdint.h>
-
 #define SERVER_MANAGER_NUM_ARGS 4
+
+#include <stdint.h>
 
 struct server_manager_arguments
 {
