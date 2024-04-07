@@ -85,7 +85,6 @@ int connect_to_server(const struct server_manager_arguments *arguments)
 
     // Print divider for debugging.
     display_divider("connect_to_server start");
-    print_server_manager_arguments(*arguments);
 
     // Create the server socket.
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
