@@ -24,10 +24,23 @@ struct tokenized_string
 struct tokenized_string tokenize_string(const char *str, const char *delim, size_t expectedMaxTokens);
 
 /**
+ * @brief Prints out a tokenized string.
+ */
+void print_tokenized_string(struct tokenized_string);
+
+/**
  * @brief Frees a tokenized string struct.
  * @param tokenized_string The struct to free.
  */
 void free_tokenized_string(struct tokenized_string tokenized_string);
+
+/**
+ * @brief Converts a string array to a string.
+ * @param stringArray The array of strings to convert.
+ * @param delim The delimiter to separate the strings by.
+ * @returns char*
+ */
+char *string_array_to_string(char **stringArray, const char *delim, size_t len);
 
 /**
  * @brief Frees every string in the provided array and thefrees the array itself.

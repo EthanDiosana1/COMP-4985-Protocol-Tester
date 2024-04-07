@@ -1,9 +1,12 @@
 #include "ipTools.h"
+#include "stringTools.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define BASE_10 10
+
+#define IPV4_TOKENS_MAX 4
 
 /**
  * @brief Converts a string to a uint16_t. Returns NULL on fail.
@@ -55,6 +58,18 @@ uint16_t *str_to_uint16_t(const char *str)
  */
 bool is_valid_ipv4(const char *ip)
 {
-    printf("In progres... %s\n", ip);
-    return false;
+    struct tokenized_string tokenized_string;
+    const char             *delim = ".";
+
+    tokenized_string = tokenize_string(ip, delim, IPV4_TOKENS_MAX);
+    // print_tokenized_string(tokenized_string);
+    if(tokenized_string.numTokens != IPV4_TOKENS_MAX)
+    {
+        free_tokenized_string(tokenized_string);
+        return false;
+    }
+
+    free_tokenized_string(tokenized_string);
+
+    return true;
 }

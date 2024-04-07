@@ -7,9 +7,15 @@
 #include "server_manager/serverManagerArguments.h"
 #include "server_manager/serverManagerTools.h"
 
+// Error messages
+#define ERR_INVALID_NUM_ARGS "invalid number of arguments\n"
+#define ERR_INVALID_PORT "port must be between %d and %d inclusive. port value: %d\n"
+
+// #define ERR_INVALID_IPV4 "invalid ipv4\n"
+
 void print_server_manager_arguments(struct server_manager_arguments arguments)
 {
-    printf("struct server_manager_arguments {\n\tip: %s\n\tport: %hu\n\tpasscode: %s\n}", arguments.ip, arguments.port, arguments.passcode);
+    printf("struct server_manager_arguments {\n\tip: %s\n\tport: %hu\n\tpasscode: %s\n}\n", arguments.ip, arguments.port, arguments.passcode);
 }
 
 void free_server_manager_arguments(struct server_manager_arguments *arguments)
@@ -31,10 +37,32 @@ struct server_manager_arguments *parse_args(int argc, const char *argv[])
     if(argc != SERVER_MANAGER_NUM_ARGS)
     {
         display_usage();
-        fprintf(stderr, "invalid number of arguments\n");
+        fprintf(stderr, ERR_INVALID_NUM_ARGS);
         return NULL;
     }
     printf("valid number of arguments...\n");
+
+    // Validate ip using ipTools.
+    printf("checking if ipv4 is valid...\n");
+    printf("check not implemented, skipping\n");
+
+    // Convert the string to a uint16_t.
+    port = str_to_uint16_t(argv[2]);
+
+    if(port == NULL)
+    {
+        fprintf(stderr, "port failed to convert\n");
+        free(port);
+        return NULL;
+    }
+
+    // Validate port.
+    if(*port < PORT_MIN || *port > PORT_MAX)
+    {
+        fprintf(stderr, ERR_INVALID_PORT, PORT_MIN, PORT_MAX, *port);
+        free(port);
+        return NULL;
+    }
 
     // Allocate memory for the arguments struct.
     arguments = malloc(sizeof(struct server_manager_arguments));
@@ -45,26 +73,6 @@ struct server_manager_arguments *parse_args(int argc, const char *argv[])
     }
 
     printf("arguments struct allocated...\n");
-
-    // Convert the string to a uint16_t.
-    port = str_to_uint16_t(argv[2]);
-
-    if(port == NULL)
-    {
-        fprintf(stderr, "port failed to convert\n");
-        free(port);
-        free(arguments);
-        return NULL;
-    }
-
-    if(*port < PORT_MIN || *port > PORT_MAX)
-    {
-        fprintf(stderr, "port must be between %d and %d inclusive. port value: %d\n", PORT_MIN, PORT_MAX, *port);
-        free(port);
-        free(arguments);
-        return NULL;
-    }
-    // TODO: validate ip using ipTools.
 
     // Set the arguments.
     arguments->ip   = strndup(argv[1], strlen(argv[1]));
