@@ -72,8 +72,8 @@ struct common_message *receive_message(int server_fd)
     }
 
     // Receive the version
-    bytes_received = recv(server_fd, &message->version, sizeof(message->version), 0);
-    if(bytes_received != sizeof(message->version))
+    bytes_received = recv(server_fd, &message->version, (ssize_t)sizeof(message->version), 0);
+    if(bytes_received != (ssize_t)sizeof(message->version))
     {
         perror("receive version failed");
         free(message);
@@ -92,15 +92,19 @@ struct common_message *receive_message(int server_fd)
     bytes_received = recv(server_fd, &message->size, sizeof(message->size), 0);
     if(bytes_received != sizeof(message->size))
     {
+        printf("message->size: %hu\n", message->size);
         perror("receive size failed");
         free(message);
         return NULL;
     }
 
-    message->size = ntohs(message->size);    // Make sure to convert network byte order to host byte order
+    // Correct network order.
+    message->size = ntohs(message->size);
 
     // Allocate memory for the content
-    message->content = malloc(message->size + 1);    // +1 for null terminator
+    message->content = malloc(sizeof(char) * (message->size + 1));
+    // +1 for null terminator
+
     if(!message->content)
     {
         perror("malloc failed");
@@ -108,19 +112,17 @@ struct common_message *receive_message(int server_fd)
         return NULL;
     }
 
+    message->content[message->size] = '\0';
+
     // Receive the content
-    do
+    bytes_received = recv(server_fd, message->content, message->size, 0);
+    if(bytes_received != (message->size * sizeof(char)))
     {
-        bytes_received = recv(server_fd, message->content, message->size, 0);
-        printf("content: %s\n", message->content);
-    } while(bytes_received != message->size);
-    if(bytes_received != message->size)
-    {
+        fprintf(stderr, MSG_RECEIVE_CONTENT_FAILURE);
         printf("message->size %hu\n", message->size);
         printf("bytes_received: %zd\n", bytes_received);
         printf("message->content: %s\n", message->content);
         perror("receive content failed");
-        fprintf(stderr, MSG_RECEIVE_CONTENT_FAILURE);
         free(message->content);
         free(message);
         return NULL;

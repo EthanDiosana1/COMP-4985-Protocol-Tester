@@ -33,6 +33,9 @@
 #define MSG_RECEIVE_MESSAGE_SUCCESS "[SUCCESS]: message received from server.\n"
 #define MSG_RECEIVE_MESSAGE_FAILURE "[FAILURE]: failed to receive message from server\n"
 
+// DEFAULTS
+#define DEFAULT_PORT 3000
+
 /**
  * @brief Connects to a server with the given params.
  * @param arguments The arguments struct
@@ -95,20 +98,11 @@ int connect_to_server(const struct server_manager_arguments *arguments)
     // Allocate memory for the server_address.
     memset(&server_address, 0, sizeof(server_fd));
     server_address.sin_family = AF_INET;
-    server_address.sin_port   = arguments->port;
+    server_address.sin_port   = htons(DEFAULT_PORT);
 
     if(inet_pton(AF_INET, arguments->ip, &server_address.sin_addr) <= 0)
     {
         perror("ip conversion failed");
-        close(server_fd);
-        display_divider("connect_to_server end");
-        return EXIT_FAILURE;
-    }
-
-    // Bind the socket.
-    if(bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-    {
-        perror("bind failed");
         close(server_fd);
         display_divider("connect_to_server end");
         return EXIT_FAILURE;
@@ -175,6 +169,7 @@ int receive_and_display_response(int server_fd)
 
     printf("Server: %s\n", message->content);
 
+    free(message->content);
     free(message);
     return EXIT_SUCCESS;
 }
