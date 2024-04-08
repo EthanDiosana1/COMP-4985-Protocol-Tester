@@ -158,6 +158,7 @@ int receive_and_display_response(int server_fd)
 {
     struct common_message *message;
 
+    // Attempt to receive the message.
     printf(MSG_RECEIVE_MESSAGE_ATTEMPT);
     message = receive_message(server_fd);
     if(message == NULL)
@@ -169,6 +170,7 @@ int receive_and_display_response(int server_fd)
 
     printf("Server: %s\n", message->content);
 
+    // Free the message struct.
     free(message->content);
     free(message);
     return EXIT_SUCCESS;
