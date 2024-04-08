@@ -32,11 +32,11 @@ struct common_message
  * @brief Sends a message to the given server fd.
  *
  * @param server_fd The server to send to.
- * @param message The message to send.
+ * @param content The content to send.
  *
  * @returns int
  */
-int send_message(int server_fd, struct common_message message);
+int send_message(int server_fd, const char *content);
 
 /**
  * @brief Receives a message from the server.

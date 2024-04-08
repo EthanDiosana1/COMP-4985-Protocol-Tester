@@ -29,9 +29,9 @@
 #define MSG_SENDING_PASSCODE_SUCCESS "[SUCCESS]: passcode sent to server.\n"
 #define MSG_SENDING_PASSCODE_FAILURE "[FAILURE] passcode failed to send.\n"
 
-#define MSG_SENDING_COMMAND_ATTEMPT "[ATTEMPT]: sending command to server...\n"
-#define MSG_SENDING_COMMAND_SUCCESS "[SUCCESS]: command sent to server.\n"
-#define MSG_SENDING_COMMAND_FAILURE "[FAILURE]: command failed to send\n"
+#define MSG_RECEIVE_MESSAGE_ATTEMPT "[ATTEMPT]: receiving message from server...\n"
+#define MSG_RECEIVE_MESSAGE_SUCCESS "[SUCCESS]: message received from server.\n"
+#define MSG_RECEIVE_MESSAGE_FAILURE "[FAILURE]: failed to receive message from server\n"
 
 /**
  * @brief Connects to a server with the given params.
@@ -41,13 +41,16 @@ int connect_to_server(const struct server_manager_arguments *arguments);
 
 /**
  * @brief Sends the passcode to the server.
+ * @param server_fd The server fd.
+ * @param passcode The passcode to send.
  */
 int send_passcode(int server_fd, const char *passcode);
 
 /**
- * @brief Sends a command to the server.
+ * @brief Receives the response from the server and displays it.
+ * @param server_fd The server fd.
  */
-int send_command(int server_fd, const char *command);
+int receive_and_display_response(int server_fd);
 
 int main(const int argc, const char *argv[])
 {
@@ -74,7 +77,7 @@ int main(const int argc, const char *argv[])
     }
 
     free_server_manager_arguments(arguments);
-
+    display_divider("SERVER MANAGER END");
     return EXIT_SUCCESS;
 }
 
@@ -94,6 +97,23 @@ int connect_to_server(const struct server_manager_arguments *arguments)
     server_address.sin_family = AF_INET;
     server_address.sin_port   = arguments->port;
 
+    if(inet_pton(AF_INET, arguments->ip, &server_address.sin_addr) <= 0)
+    {
+        perror("ip conversion failed");
+        close(server_fd);
+        display_divider("connect_to_server end");
+        return EXIT_FAILURE;
+    }
+
+    // Bind the socket.
+    if(bind(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+    {
+        perror("bind failed");
+        close(server_fd);
+        display_divider("connect_to_server end");
+        return EXIT_FAILURE;
+    }
+
     printf(MSG_SERVER_CONNECT_ATTEMPT);
     if(connect(server_fd, (struct sockaddr *)&server_address, sizeof(server_address)) == -1)
     {
@@ -105,79 +125,56 @@ int connect_to_server(const struct server_manager_arguments *arguments)
     printf(MSG_SERVER_CONNECT_SUCCESS);
 
     // When connected, immediately send the passcode.
+    if(send_passcode(server_fd, arguments->passcode))
+    {
+        perror("send_passcode");
+        close(server_fd);
+        return EXIT_FAILURE;
+    }
 
+    close(server_fd);
     display_divider("connect_to_server end");
     return EXIT_SUCCESS;
 }
 
 int send_passcode(int server_fd, const char *passcode)
 {
-    struct common_message message;
-
-    if(passcode == NULL)
-    {
-        perror("send message");
-        return EXIT_FAILURE;
-    }
-
-    message.version = MESSAGE_PROTOCOL_VERSION;
-    message.size    = (uint16_t)strlen(passcode);
-    message.content = strdup(passcode);
-
-    if(message.content == NULL)
-    {
-        perror("send message");
-        printf(MSG_SENDING_PASSCODE_FAILURE);
-        return EXIT_FAILURE;
-    }
-
-    // Attempt to send the message to the server.
     printf(MSG_SENDING_PASSCODE_ATTEMPT);
-    if(send_message(server_fd, message) == EXIT_FAILURE)
+    if(send_message(server_fd, passcode) == EXIT_FAILURE)
     {
-        perror("send message");
-        printf(MSG_SENDING_PASSCODE_FAILURE);
+        fprintf(stderr, MSG_SENDING_PASSCODE_FAILURE);
+        perror("send_message");
+        close(server_fd);
         return EXIT_FAILURE;
     }
-
-    free(message.content);
     printf(MSG_SENDING_PASSCODE_SUCCESS);
+
+    // Await the response from the server.
+    if(receive_and_display_response(server_fd) == EXIT_FAILURE)
+    {
+        perror("receive_and_display_response");
+        close(server_fd);
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
 
-int send_command(int server_fd, const char *command)
+int receive_and_display_response(int server_fd)
 {
-    struct common_message message;
+    struct common_message *message;
 
-    if(command == NULL)
+    printf(MSG_RECEIVE_MESSAGE_ATTEMPT);
+    message = receive_message(server_fd);
+    if(message == NULL)
     {
-        perror("send_command");
+        fprintf(stderr, MSG_RECEIVE_MESSAGE_FAILURE);
         return EXIT_FAILURE;
     }
+    printf(MSG_RECEIVE_MESSAGE_SUCCESS);
 
-    message.version = MESSAGE_PROTOCOL_VERSION;
-    message.size    = (uint16_t)strlen(command);
-    message.content = strdup(command);
+    printf("Server: %s\n", message->content);
 
-    if(message.content == NULL)
-    {
-        perror("send message");
-        printf(MSG_SENDING_COMMAND_FAILURE);
-        return EXIT_FAILURE;
-    }
-
-    // Attempt to send the message to the server.
-    printf(MSG_SENDING_COMMAND_ATTEMPT);
-    if(send_message(server_fd, message) == EXIT_FAILURE)
-    {
-        perror("send message");
-        printf(MSG_SENDING_COMMAND_FAILURE);
-        return EXIT_FAILURE;
-    }
-
-    free(message.content);
-    printf(MSG_SENDING_COMMAND_SUCCESS);
-
+    free(message);
     return EXIT_SUCCESS;
 }
