@@ -163,12 +163,11 @@ char *string_array_to_string(char **stringArray, const char *delim, size_t len)
     output[0] = '\0';
     for(size_t i = 0; i < len; i++)
     {
-        strlcat(output, stringArray[i], strlen(stringArray[i]));
-
+        strncat(output, stringArray[i], strlen(stringArray[i]));
         // Do not put delim after last element.
         if(i < (len - 1))
         {
-            strlcat(output, delim, strlen(delim));
+            strncat(output, delim, strlen(delim));
         }
     }
 

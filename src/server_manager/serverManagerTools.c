@@ -27,9 +27,12 @@ void display_divider(const char *text)
 int send_message(int server_fd, const char *content)
 {
     struct common_message message;
+    size_t                message_length;
+
+    message_length = (uint16_t)strlen(content);
 
     message.version = MESSAGE_PROTOCOL_VERSION;
-    message.size    = (uint16_t)strlen(content);
+    message.size    = htons((uint16_t)message_length);
     message.content = strdup(content);
 
     // Send the version
@@ -49,7 +52,7 @@ int send_message(int server_fd, const char *content)
     }
 
     // Send the content
-    if(send(server_fd, &message.content, message.size, 0) < 0)
+    if(send(server_fd, message.content, message_length, 0) < 0)
     {
         perror("send content failed");
         free(message.content);
