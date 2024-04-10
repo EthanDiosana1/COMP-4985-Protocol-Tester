@@ -17,7 +17,7 @@
  * @param str The string to convert.
  * @returns uint16_t
  */
-uint16_t str_to_uint16_t(const char *str);
+uint16_t *str_to_uint16_t(const char *str);
 
 /**
  * @brief Returns 1 if the ip is valid and 0 if not.
