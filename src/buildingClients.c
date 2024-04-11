@@ -41,11 +41,6 @@ static int  socket_create(int domain, int type, int protocol);
 static void socket_connect(int sockfd, struct sockaddr_storage *addr, in_port_t port);
 static void socket_close(int sockfd);
 
-// Signal Handling Functions
-static void setup_signal_handler(void);
-static void sigtstp_handler(int signum);
-
-static volatile sig_atomic_t sigtstp_flag = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 #define NUM_CLIENTS 32
 #define NUM_PAIR 2
 #define BUFFER UINT16_MAX
@@ -349,7 +344,7 @@ int check_userlist_command(int argc, char *argv[])
     handle_arguments(argv[0], ip_address, port_str, &port);
     convert_address(ip_address, &addr);
 
-    // create two clients, one to input username, the other to check
+    // create ten clients
     for(int i = 0; i < BASE_TEN; i++)
     {
         client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);
@@ -1445,52 +1440,3 @@ static void socket_close(int sockfd)
         exit(EXIT_FAILURE);
     }
 }
-
-// Signal Handling Functions
-
-/**
- * Sets up a signal handler for the application.
- */
-static void setup_signal_handler(void)
-{
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-
-// Disable specific clang compiler warning related to macro expansion.
-#if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
-#endif
-
-    // Set the signal handler function for SIGTSTP (Ctrl+Z) to 'sigtstp_handler'.
-    sa.sa_handler = sigtstp_handler;
-
-// Restore the previous Clang compiler warning settings.
-#if defined(__clang__)
-    #pragma clang diagnostic pop
-#endif
-
-    sigemptyset(&sa.sa_mask);    // Clear the sa_mask, which is used to block signals during the signal handler execution.
-    sa.sa_flags = 0;             // Set sa_flags to 0, indicating no special flags for signal handling.
-
-    // Register the signal handler configuration ('sa') for the SIGINT signal.
-    if(sigaction(SIGINT, &sa, NULL) == -1)
-    {
-        perror("sigaction");
-        exit(EXIT_FAILURE);
-    }
-}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-/**
- * Signal handler function for the SIGTSTP (Ctrl+Z) signal.
- * @param signum the signal number, typically SIGTSTP (2) in this context
- */
-static void sigtstp_handler(int signum)
-{
-    sigtstp_flag = 1;
-}
-
-#pragma GCC diagnostic pop
