@@ -19,7 +19,6 @@
 // MY LIBRARIES
 #include "ipTools.h"
 #include "server_manager/serverManager.h"
-#include "server_manager/serverManagerArguments.h"
 #include "server_manager/serverManagerTools.h"
 
 // MESSAGES
@@ -57,7 +56,7 @@ int main(const int argc, const char *argv[])
     return run_server_manager(argc, argv);
 }
 
-int run_server_manager(const int argc, const char *argv[])
+int run_server_manager(int argc, const char *argv[])
 {
     struct server_manager_arguments *arguments;
     int                              server_fd;    // The socket for the server

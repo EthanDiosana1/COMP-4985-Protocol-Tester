@@ -27,7 +27,6 @@ int receive_and_display_response(int server_fd);
  */
 int get_user_input(char *input);
 
-int run_server_manager(const int argc, const char *argv[]);
+int run_server_manager(int argc, const char *argv[]);
 
-
-#endif 
+#endif

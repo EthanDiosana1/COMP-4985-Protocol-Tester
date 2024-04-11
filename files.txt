@@ -4,4 +4,4 @@ serverManager src/server_manager/serverManager.c include/ipTools.h include/strin
 
 test src/protocolServerTests.c check src/buildingClients.c
 
-testServer-SM check include/protocolServer-SM-Tests.h src/protocolServer-SM-Tests.c include/protocolServer-SM-Tests-Functions.h src/protocolServer-SM-Tests-Functions.c
+testServer-SM check include/server_manager/serverManager.h src/server_manager/serverManager.c include/protocolServer-SM-Tests.h src/protocolServer-SM-Tests.c include/protocolServer-SM-Tests-Functions.h src/protocolServer-SM-Tests-Functions.c
