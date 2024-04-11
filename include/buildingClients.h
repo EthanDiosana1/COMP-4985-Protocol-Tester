@@ -17,4 +17,13 @@ int check_version_min(int argc, char *argv[]);
 int check_content_size_max(int argc, char *argv[]);
 int check_content_size_min(int argc, char *argv[]);
 int check_version_num(int argc, char *argv[]);
+
+
+struct server_data
+{
+    int    argc;
+    char **argv;
+};
+
+
 #endif //COMP_4985_PROTOCOL_TESTER_BUILDINGCLIENTS_H
