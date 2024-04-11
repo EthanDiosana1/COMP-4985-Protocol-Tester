@@ -115,19 +115,42 @@ START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avo
     free(actualContent);
 }
 
-// Test for reading diagnostics command
-// Since Server Managers just write commands, no real way to check for outputs through code
-// So this test case is done in person where I have the server manager tell me the number of diagnostics received
-// This test passes if the number of diagnostics received matches the number of diagnostics sent out
+// Test for diagnostics
 START_TEST(test_server_manager_diagnostics_count)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
+    ssize_t     bytes_read;
     size_t      msg_len;
     uint8_t     version;
     uint16_t    contentSize;
-    const char *response = "4";
-    int         result   = 3;
+    const char *response      = "4";
+    int         result        = 3;
+    char       *actualContent = {0};
 
-    printf("Tell tester the number of diagnostics received\n");
+    printf("Type \"/d\"\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.server_manager_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    // Read content size
+    read(params.server_manager_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.server_manager_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    ck_assert_str_eq("/d", actualContent);
 
     version     = 1;
     msg_len     = strlen(response);
