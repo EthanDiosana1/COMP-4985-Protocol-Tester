@@ -18,6 +18,7 @@
 
 // MY LIBRARIES
 #include "ipTools.h"
+#include "server_manager/serverManager.h"
 #include "server_manager/serverManagerArguments.h"
 #include "server_manager/serverManagerTools.h"
 
@@ -40,30 +41,6 @@
 #define DEFAULT_PORT 3000
 
 /**
- * @brief Connects to a server with the given params.
- * @param arguments The arguments struct
- */
-int connect_to_server(const struct server_manager_arguments *arguments, int server_fd);
-
-/**
- * @brief Sends the passcode to the server.
- * @param server_fd The server fd.
- * @param passcode The passcode to send.
- */
-int send_passcode(int server_fd, const char *passcode);
-
-/**
- * @brief Receives the response from the server and displays it.
- * @param server_fd The server fd.
- */
-int receive_and_display_response(int server_fd);
-
-/**
- * @brief Receives input from the user
- */
-int get_user_input(char *input);
-
-/**
  * @brief Sets up the ctrl c signal
  */
 static void setup_signal_handler(void);
@@ -76,6 +53,11 @@ static void sig_handler(int signum);
 static volatile sig_atomic_t exit_flag = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(const int argc, const char *argv[])
+{
+    return run_server_manager(argc, argv);
+}
+
+int run_server_manager(const int argc, const char *argv[])
 {
     struct server_manager_arguments *arguments;
     int                              server_fd;    // The socket for the server
