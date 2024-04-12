@@ -1,6 +1,6 @@
-# template-c Repository Guide
+# COMP-4985-Protocol-Tester Repository Guide
 
-Welcome to the `c template` repository. This guide will help you set up and run the provided scripts.
+Welcome to the `COMP-4985-Protocol-Tester` repository. This guide will help you set up and run the provided scripts.
 
 ## **Table of Contents**
 
