@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 
-#define MESSAGE_PROTOCOL_VERSION 0
+#define MESSAGE_PROTOCOL_VERSION 1
 
 /** Prints a string that displays how to use this app. */
 void display_usage(void);

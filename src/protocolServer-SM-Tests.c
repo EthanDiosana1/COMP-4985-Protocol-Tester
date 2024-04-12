@@ -1,25 +1,36 @@
 #include "protocolServer-SM-Tests.h"
 #include "protocolServer-SM-Tests-Functions.h"
 #include <check.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define TESTING_SUITE_NAME "protocol_server_sm_suite"
 
-#define TEST1 test_connect_correct_passcode
-#define TEST2 test_connect_incorrect_passcode_once
-#define TEST3 test_connect_incorrect_passcode_5_times
-#define TEST4 test_client_connects_before_sending_q
-#define TEST5 test_client_connects_after_sending_q
+#define NUM_ARGS 5
+#define TEST_TO_RUN_INDEX 4
 
 Suite *protocol_server_sm_suite(void);
 
 static struct server_data_sm sd;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+static char test_to_run;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char *argv[])
 {
     int      number_failed;
     Suite   *s;
     SRunner *sr;
+
+    if(argc != NUM_ARGS)
+    {
+        return EXIT_FAILURE;
+    }
+
+    test_to_run             = argv[TEST_TO_RUN_INDEX][0];
+    argv[TEST_TO_RUN_INDEX] = NULL;
+    argc                    = NUM_ARGS - 1;
+    printf("new argc: %d\n", argc);
+
     sd.argc = argc;
     sd.argv = argv;
 
@@ -43,43 +54,35 @@ int main(int argc, char *argv[])
 }
 
 // SEND THE CORRECT PASSCODE TO THE SERVER.
-START_TEST(TEST1)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_connect_correct_passcode)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     int result;
     result = connect_correct_passcode(sd.argc, sd.argv);
-    ck_assert_int_eq(0, result);
+    ck_assert_int_eq(EXIT_SUCCESS, result);
 }
 
 // SEND THE INCORRECT PASSCODE TO THE SERVER ONCE.
-START_TEST(TEST2)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_connect_incorrect_passcode_once)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     int result;
-    result = connect_correct_passcode(sd.argc, sd.argv);
-    ck_assert_int_eq(0, result);
-}
-
-// SEND THE INCORRECT PASSCODE TO THE SERVER 5 TIMES.
-START_TEST(TEST3)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-{
-    int result;
-    result = connect_correct_passcode(sd.argc, sd.argv);
-    ck_assert_int_eq(0, result);
+    result = connect_incorrect_passcode(sd.argc, sd.argv);
+    ck_assert_int_eq(EXIT_FAILURE, result);
 }
 
 // CLIENT CONNECTS TO SERVER BEFORE SENDING /q
-START_TEST(TEST4)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_client_connects_before_sending_q)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     int result;
-    result = connect_correct_passcode(sd.argc, sd.argv);
-    ck_assert_int_eq(0, result);
+    result = client_connect_normal(sd.argc, sd.argv);
+    ck_assert_int_eq(EXIT_SUCCESS, result);
 }
 
 // CLIENT CONNECTS TO SERVER AFTER SENDING /q
-START_TEST(TEST5)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_client_connects_after_sending_q)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     int result;
-    result = connect_correct_passcode(sd.argc, sd.argv);
-    ck_assert_int_eq(0, result);
+    result = client_connect_after_sending_q(sd.argc, sd.argv);
+    ck_assert_int_eq(EXIT_FAILURE, result);
 }
 
 Suite *protocol_server_sm_suite(void)
@@ -90,11 +93,24 @@ Suite *protocol_server_sm_suite(void)
     s       = suite_create(TESTING_SUITE_NAME);
     tc_core = tcase_create("Core");
 
-    tcase_add_test(tc_core, TEST1);
-    tcase_add_test(tc_core, TEST2);
-    tcase_add_test(tc_core, TEST3);
-    tcase_add_test(tc_core, TEST4);
-    tcase_add_test(tc_core, TEST5);
+    switch(test_to_run)
+    {
+        case '1':
+            tcase_add_test(tc_core, test_connect_correct_passcode);
+            break;
+        case '2':
+            tcase_add_test(tc_core, test_connect_incorrect_passcode_once);
+            break;
+        case '3':
+            tcase_add_test(tc_core, test_client_connects_before_sending_q);
+            break;
+        case '4':
+            tcase_add_test(tc_core, test_client_connects_after_sending_q);
+            break;
+        default:
+            printf("Invalid test_to_run\n");
+            break;
+    }
 
     suite_add_tcase(s, tc_core);
 

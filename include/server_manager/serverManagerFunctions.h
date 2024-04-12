@@ -1,7 +1,23 @@
-#ifndef SERVER_MANAGER_C
-#define SERVER_MANAGER_C
+#ifndef SERVER_MANAGER_FUNCTIONS_C
+#define SERVER_MANAGER_FUNCTIONS_C
 
 #include "server_manager/serverManagerArguments.h"
+#include <arpa/inet.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+/**
+ * @brief Runs the server manager and connects it to the server using the params.
+ * @param argc The number of arguments.
+ * @param argv The arguments.
+ * @returns int The exit code of the server manager.
+ */
+int run_server_manager(int argc, char *argv[]);
 
 /**
  * @brief Connects to a server with the given params.
@@ -26,7 +42,5 @@ int receive_and_display_response(int server_fd);
  * @brief Receives input from the user
  */
 int get_user_input(char *input);
-
-int run_server_manager(int argc, const char *argv[]);
 
 #endif
