@@ -1,7 +1,14 @@
 #include "server_manager/serverManagerFunctions.h"
 #include "server_manager/serverManagerArguments.h"
 #include "server_manager/serverManagerTools.h"
+#include <arpa/inet.h>     // For inet_pton
+#include <netinet/in.h>    // Add this line to include the definition of struct sockaddr_in
+#include <stdio.h>         // For perror and printf
+#include <stdlib.h>        // For EXIT_FAILURE
+#include <string.h>        // For memset
+#include <unistd.h>        // For close
 
+// ...rest of your code...
 // MESSAGES
 #define MSG_SERVER_CONNECT_ATTEMPT "[ATTEMPT]: attempting to connect to server...\n"
 #define MSG_SERVER_CONNECT_SUCCESS "[SUCCESS]: connected to server.\n"
