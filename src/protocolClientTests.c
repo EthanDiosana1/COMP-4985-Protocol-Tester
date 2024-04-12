@@ -232,8 +232,8 @@ START_TEST(test_client_userlist_command)    // NOLINT(cppcoreguidelines-avoid-no
     free(actualContent);
 }
 
-// Test for reading minimum fields
-START_TEST(test_client_read_min_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+// Test for writing minimum fields
+START_TEST(test_client_write_min_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     ssize_t  bytes_read;
     uint8_t  version;
@@ -274,50 +274,58 @@ START_TEST(test_client_read_min_fields)    // NOLINT(cppcoreguidelines-avoid-non
     free(actualContent);
 }
 
-// Test for reading maximum fields
-// START_TEST(test_client_read_max_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-//{
-//    ssize_t  bytes_read;
-//    uint8_t  version;
-//    uint16_t contentSize;
-//    char    *actualContent = {0};
-//
-//    printf("Press enter\n");
-//
-//    // Constantly read until bytes are read
-//    do
-//    {
-//        bytes_read = read(params.client_fd, &version, sizeof(version));
-//    } while(bytes_read < 1);
-//
-//    // ck_assert_int_eq(UINT8_MAX, version);
-//
-//    // Read content size
-//    read(params.client_fd, &contentSize, sizeof(contentSize));
-//
-//    contentSize = ntohs(contentSize);
-//
-//    // ck_assert_int_eq(UINT16_MAX, contentSize);    // Check content size
-//
-//    // Allocate memory for the content string
-//    actualContent = malloc(contentSize + 1);
-//    if(actualContent == NULL)
-//    {
-//        return;
-//    }
-//
-//    // Read content string
-//    read(params.client_fd, actualContent, contentSize);
-//    actualContent[contentSize] = '\0';
-//
-//    // Check for content
-//    ck_assert_str_eq("\n", actualContent);
-//
-//    free(actualContent);
-//}
+// Test for writing maximum fields
+START_TEST(test_client_write_max_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+{
+    ssize_t  bytes_read;
+    uint8_t  version;
+    uint16_t contentSize;
+    char    *actualContent = {0};
+    char     msg[UINT16_MAX];
 
-// Test for writing minimum fields
-START_TEST(test_client_write_min_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    for(int i = 0; i < UINT16_MAX - 2; i++)
+    {
+        msg[i] = 'a';
+    }
+
+    msg[UINT16_MAX - 1] = '\0';
+
+    printf("Print maximum message\n");
+
+    // Constantly read until bytes are read
+    do
+    {
+        bytes_read = read(params.client_fd, &version, sizeof(version));
+    } while(bytes_read < 1);
+
+    ck_assert_int_eq(UINT8_MAX, version);
+
+    // Read content size
+    read(params.client_fd, &contentSize, sizeof(contentSize));
+
+    contentSize = ntohs(contentSize);
+
+    ck_assert_int_eq(UINT16_MAX, contentSize);    // Check content size
+
+    // Allocate memory for the content string
+    actualContent = malloc(contentSize + 1);
+    if(actualContent == NULL)
+    {
+        return;
+    }
+
+    // Read content string
+    read(params.client_fd, actualContent, contentSize);
+    actualContent[contentSize] = '\0';
+
+    // Check for content
+    ck_assert_str_eq(msg, actualContent);
+
+    free(actualContent);
+}
+
+// Test for reading minimum fields
+START_TEST(test_client_read_min_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     size_t      msg_len;
     ssize_t     bytes_read;
@@ -370,7 +378,7 @@ START_TEST(test_client_write_min_fields)    // NOLINT(cppcoreguidelines-avoid-no
 }
 
 // Test for reading maximum fields
-START_TEST(test_client_write_max_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_client_read_max_fields)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     size_t   msg_len;
     uint8_t  version;
@@ -414,7 +422,7 @@ Suite *protocol_client_suite(void)
     tcase_add_test(tc_core, test_client_username_command);
     tcase_add_test(tc_core, test_client_userlist_command);
     tcase_add_test(tc_core, test_client_read_min_fields);
-    //    tcase_add_test(tc_core, test_client_read_max_fields);
+    tcase_add_test(tc_core, test_client_read_max_fields);
     tcase_add_test(tc_core, test_client_write_min_fields);
     tcase_add_test(tc_core, test_client_write_max_fields);
 
@@ -464,4 +472,11 @@ int testProtocolClient(void)
 
     // Return status
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+// Main function to run the tests
+int main(void)
+{
+    testProtocolClient();
+    return EXIT_SUCCESS;
 }
