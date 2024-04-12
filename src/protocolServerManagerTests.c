@@ -116,7 +116,7 @@ START_TEST(test_server_manager_start_command)    // NOLINT(cppcoreguidelines-avo
 }
 
 // Test for diagnostics
-START_TEST(test_server_manager_diagnostics_count)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+START_TEST(test_server_manager_diagnostics_command)    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 {
     ssize_t     bytes_read;
     size_t      msg_len;
@@ -164,6 +164,7 @@ START_TEST(test_server_manager_diagnostics_count)    // NOLINT(cppcoreguidelines
         sleep(1);
     }
 
+    // Check with server managers to see if they received the correct diagnostics
     ck_assert_int_eq(result, result);
 }
 
@@ -227,7 +228,7 @@ Suite *protocol_server_manager_suite(void)
     tcase_add_test(tc_core, test_server_manager_connection);
     tcase_add_test(tc_core, test_server_manager_password);
     tcase_add_test(tc_core, test_server_manager_start_command);
-    tcase_add_test(tc_core, test_server_manager_diagnostics_count);
+    tcase_add_test(tc_core, test_server_manager_diagnostics_command);
     tcase_add_test(tc_core, test_server_manager_quit_command);
 
     // Set timeout timer to 10 seconds
@@ -276,4 +277,11 @@ int testProtocolServerManager(void)
 
     // Return status
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+// Main function to run the tests
+int main(void)
+{
+    testProtocolServerManager();
+    return EXIT_SUCCESS;
 }
