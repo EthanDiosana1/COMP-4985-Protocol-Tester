@@ -38,7 +38,7 @@ int create_server(void)
 in_port_t parse_in_port_t(void)
 {
     char       *endptr;
-    const char *str = "8080";
+    const char *str = "8888";
     uintmax_t   parsed_value;
 
     parsed_value = strtoumax(str, &endptr, BASE_TEN);
@@ -145,7 +145,7 @@ static void socket_bind(int sockfd, struct sockaddr_storage *addr, in_port_t por
 
 static void start_listening(int sockfd)
 {
-    const int backlog = 1;
+    const int backlog = 5;
 
     if(listen(sockfd, backlog) == -1)
     {
