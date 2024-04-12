@@ -1,5 +1,6 @@
 #include "protocolServer-SM-Tests-Functions.h"
 #include "server_manager/serverManagerFunctions.h"
+#include "server_manager/serverManagerTools.h"
 
 // Data Types and Limits
 #include <inttypes.h>
@@ -32,7 +33,9 @@
 #define INCORRECT_PASSCODE "Aa\0"
 #define INCORRECT_PASSCODE_LENGTH 3
 #define ARGV_PASSCODE_INDEX 3
-#define BUFFER_SIZE 1024
+#define NUM_CLIENT_ARGS 3
+#define STRING_TO_SEND "HELLO WORLD\0"
+#define CLOSE_SERVER_COMMAND "/q\0"
 
 // Argument Parsing
 static void      parse_arguments(int argc, char *argv[], char **ip_address, char **port);
@@ -83,35 +86,78 @@ int connect_correct_passcode(int argc, char *argv[])
 
 int connect_incorrect_passcode(int argc, char *argv[])
 {
-    int        result;
-    const char incorrectPasscode[INCORRECT_PASSCODE_LENGTH] = INCORRECT_PASSCODE;
-    argv[ARGV_PASSCODE_INDEX]                               = strdup(incorrectPasscode);
-    result                                                  = run_server_manager(argc, argv);
+    int                              server_fd;    // The socket for the server
+    struct server_manager_arguments *arguments;
+    const char                       incorrectPasscode[INCORRECT_PASSCODE_LENGTH] = INCORRECT_PASSCODE;
+    argv[ARGV_PASSCODE_INDEX]                                                     = strdup(incorrectPasscode);
 
-    free(argv[ARGV_PASSCODE_INDEX]);
-    return result;
+    arguments = parse_args(argc, argv);
+
+    if(arguments == NULL)
+    {
+        fprintf(stderr, "failed to set arguments\n");
+        return EXIT_FAILURE;
+    }
+
+    // Create the server socket.
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    // Attempt to connect to the server.
+    if(connect_to_server(arguments, server_fd) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Failed to connect to server.\n");
+        perror("connect_to_server");
+        close(server_fd);
+        free_server_manager_arguments(arguments);
+        return EXIT_FAILURE;
+    }
+
+    close(server_fd);
+    free_server_manager_arguments(arguments);
+    return EXIT_SUCCESS;
 }
 
 int client_connect_normal(int argc, char *argv[])
 {
-    ssize_t                 clientConnectResult;
-    int                     serverManagerResult;
-    char                   *ip_address;
-    char                   *port_str;
-    in_port_t               port;
-    int                     client_socket;
-    struct sockaddr_storage addr;
-    char                    buffer[BUFFER_SIZE];
+    ssize_t                          clientConnectResult = EXIT_FAILURE;
+    char                            *ip_address;
+    char                            *port_str;
+    in_port_t                        port;
+    struct sockaddr_storage          addr;
+    char                            *buffer;
+    int                              server_fd;    // The socket for the server
+    int                              client_socket;
+    struct server_manager_arguments *arguments;
+    const char                       correctPasscode[CORRECT_PASSCODE_LENGTH] = CORRECT_PASSCODE;
+    argv[ARGV_PASSCODE_INDEX]                                                 = strdup(correctPasscode);
 
-    // Connect to the server and send the correct password.
-    serverManagerResult = run_server_manager(argc, argv);
-    if(serverManagerResult == EXIT_FAILURE)
+    arguments = parse_args(argc, argv);
+
+    if(arguments == NULL)
     {
+        fprintf(stderr, "failed to set arguments\n");
         return EXIT_FAILURE;
     }
 
-    // Spawn a client and have it connect to the server.
+    // Create the server socket.
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
+    // Attempt to connect to the server.
+    if(connect_to_server(arguments, server_fd) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Failed to connect to server.\n");
+        perror("connect_to_server");
+        close(server_fd);
+        free_server_manager_arguments(arguments);
+        return EXIT_FAILURE;
+    }
+    free_server_manager_arguments(arguments);
+
+    // Fix args for client.
+    argc = NUM_CLIENT_ARGS;
+
+    printf("client starting...\n");
+    // Spawn a client and have it connect to the server.
     ip_address = NULL;
     port_str   = NULL;
 
@@ -119,37 +165,66 @@ int client_connect_normal(int argc, char *argv[])
     handle_arguments(argv[0], ip_address, port_str, &port);
     convert_address(ip_address, &addr);
     client_socket = socket_create(addr.ss_family, SOCK_STREAM, 0);
+
+    printf("client connecting to server...\n");
     socket_connect(client_socket, &addr, port);
 
     // Attempt to write to the client.
-    clientConnectResult = read(client_socket, &buffer, sizeof(buffer));
+    buffer              = strdup(STRING_TO_SEND);
+    clientConnectResult = write(client_socket, &buffer, sizeof(buffer));
 
     socket_close(client_socket);
-    return (int)clientConnectResult;
+
+    // Close the server manager.
+    close(server_fd);
+    free(buffer);
+    return (int)clientConnectResult > -1;
 }
 
 int client_connect_after_sending_q(int argc, char *argv[])
 {
-    ssize_t                 clientConnectResult;
-    int                     serverManagerResult;
-    char                   *ip_address;
-    char                   *port_str;
-    in_port_t               port;
-    int                     client_socket;
-    struct sockaddr_storage addr;
-    char                    buffer[BUFFER_SIZE];
+    ssize_t                          clientConnectResult = EXIT_FAILURE;
+    char                            *ip_address;
+    char                            *port_str;
+    in_port_t                        port;
+    struct sockaddr_storage          addr;
+    char                            *buffer;
+    int                              server_fd;    // The socket for the server
+    int                              client_socket;
+    struct server_manager_arguments *arguments;
+    const char                       correctPasscode[CORRECT_PASSCODE_LENGTH] = CORRECT_PASSCODE;
+    argv[ARGV_PASSCODE_INDEX]                                                 = strdup(correctPasscode);
 
-    // Connect to the server and send the correct password.
-    serverManagerResult = run_server_manager(argc, argv);
-    if(serverManagerResult == EXIT_FAILURE)
+    arguments = parse_args(argc, argv);
+
+    if(arguments == NULL)
     {
+        fprintf(stderr, "failed to set arguments\n");
         return EXIT_FAILURE;
     }
 
-    // TODO: send q to the server.
+    // Create the server socket.
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
+    // Attempt to connect to the server.
+    if(connect_to_server(arguments, server_fd) == EXIT_FAILURE)
+    {
+        fprintf(stderr, "Failed to connect to server.\n");
+        perror("connect_to_server");
+        close(server_fd);
+        free_server_manager_arguments(arguments);
+        return EXIT_FAILURE;
+    }
+    free_server_manager_arguments(arguments);
+
+    // Send /q to the server.
+    send_message(server_fd, CLOSE_SERVER_COMMAND);
+
+    // Fix args for client.
+    argc = NUM_CLIENT_ARGS;
+
+    printf("client starting...\n");
     // Spawn a client and have it connect to the server.
-
     ip_address = NULL;
     port_str   = NULL;
 
@@ -157,13 +232,24 @@ int client_connect_after_sending_q(int argc, char *argv[])
     handle_arguments(argv[0], ip_address, port_str, &port);
     convert_address(ip_address, &addr);
     client_socket = socket_create(addr.ss_family, SOCK_STREAM, 0);
+
+    printf("client connecting to server...\n");
     socket_connect(client_socket, &addr, port);
 
     // Attempt to write to the client.
-    clientConnectResult = read(client_socket, &buffer, sizeof(buffer));
+    buffer              = strdup(STRING_TO_SEND);
+    clientConnectResult = write(client_socket, &buffer, sizeof(buffer));
 
     socket_close(client_socket);
-    return (int)clientConnectResult;
+
+    // Close the server manager.
+    close(server_fd);
+    free(buffer);
+    if((int)clientConnectResult > -1)
+    {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }
 
 // Argument Parsing Functions

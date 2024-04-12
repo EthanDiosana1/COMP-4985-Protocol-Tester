@@ -18,8 +18,9 @@
 #define MSG_USER_INPUT_FAILURE "[FAILURE]: failed to get user input\n"
 
 #define MSG_PASSCODE_REJECTED "[ERROR]: server rejected passcode\n"
+#define MSG_PASSCODE_ACCEPTED "[SUCCESS]: server accepted passcode\n"
 
-#define RSP_CONNECTION_ACCEPTED "ACCEPTED"
+#define RSP_CONNECTION_ACCEPTED "ACCEPTED\n"
 
 // DEFAULTS
 #define DEFAULT_PORT 3000
@@ -132,7 +133,7 @@ int connect_to_server(const struct server_manager_arguments *arguments, int serv
     printf(MSG_SERVER_CONNECT_SUCCESS);
 
     // When connected, immediately send the passcode.
-    if(send_passcode(server_fd, arguments->passcode))
+    if(send_passcode(server_fd, arguments->passcode) == EXIT_FAILURE)
     {
         perror("send_passcode");
         close(server_fd);
@@ -176,6 +177,7 @@ int send_passcode(int server_fd, const char *passcode)
         free(message);
         return EXIT_FAILURE;
     }
+    printf(MSG_PASSCODE_ACCEPTED);
 
     // Free the message struct.
     free(message->content);

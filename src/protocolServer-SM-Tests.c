@@ -74,7 +74,7 @@ START_TEST(test_client_connects_before_sending_q)    // NOLINT(cppcoreguidelines
 {
     int result;
     result = client_connect_normal(sd.argc, sd.argv);
-    ck_assert_int_eq(EXIT_SUCCESS, result);
+    ck_assert_int_eq(1, result);
 }
 
 // CLIENT CONNECTS TO SERVER AFTER SENDING /q
