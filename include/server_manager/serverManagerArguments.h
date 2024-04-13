@@ -30,6 +30,6 @@ void free_server_manager_arguments(struct server_manager_arguments *arguments);
  * @param argc The number of args.
  * @param argv The arguments.
  */
-struct server_manager_arguments *parse_args(int argc, const char *argv[]);
+struct server_manager_arguments *parse_args(int argc, char *argv[]);
 
 #endif

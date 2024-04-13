@@ -5,13 +5,7 @@
 
 Suite *protocol_limits_suite(void);
 
-struct server_data
-{
-    int    argc;
-    char **argv;
-};
-
-struct server_data sd;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static struct server_data sd;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 int main(int argc, char *argv[])
 {
