@@ -344,7 +344,7 @@ int check_userlist_command(int argc, char *argv[])
     handle_arguments(argv[0], ip_address, port_str, &port);
     convert_address(ip_address, &addr);
 
-    // create two clients, one to input username, the other to check
+    // create ten clients
     for(int i = 0; i < BASE_TEN; i++)
     {
         client_sockets[i] = socket_create(addr.ss_family, SOCK_STREAM, 0);

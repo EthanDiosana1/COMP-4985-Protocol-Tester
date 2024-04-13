@@ -9,6 +9,6 @@ int main(void)
 {
     // Run base protocol tests
     runCommonProtocolTests();
-
+  
     return EXIT_SUCCESS;
 }
